@@ -1,0 +1,46 @@
+     0.000ms [yj4vfy8g1pi] 🏗️  constructor starting
+     0.008ms [yj4vfy8g1pi] 🏗️  constructor complete https://localhost:64722/
+     0.025ms [yj4vfy8g1pi] ▶️ resume()
+     0.029ms [yj4vfy8g1pi] ✍️  write 95b 🇺🇸=unknown buffered=0
+     0.034ms [yj4vfy8g1pi] 🚀 onRequestStart path=/ keepAlive=true
+     0.075ms [yj4vfy8g1pi] ✍️  write 2b 🇺🇸=unknown buffered=1
+     0.080ms [yj4vfy8g1pi] ✍️  write 9b 🇺🇸=unknown buffered=2
+     0.084ms [yj4vfy8g1pi] 📦 onRequestBody 9b
+     0.087ms [yj4vfy8g1pi] ✍️  write 2b 🇺🇸=unknown buffered=3
+     0.090ms [yj4vfy8g1pi] ✍️  write 5b 🇺🇸=unknown buffered=4
+     0.093ms [yj4vfy8g1pi] 🏁 onRequestEnd hasStream=true
+     0.098ms [yj4vfy8g1pi] 🔬 _read(16384) ⏳=true 🔐=true 🇺🇸=unknown 🔗=https://localhost:64722/
+     0.102ms [yj4vfy8g1pi] 📣 emit resume
+     0.168ms [yj4vfy8g1pi] 💨 passthrough() 🧨=false ⏳=true
+     0.398ms [yj4vfy8g1pi] 🔌 created originalSocket
+     0.404ms [yj4vfy8g1pi] 🚽 flushing writeBuffer (5 items)
+     0.418ms [yj4vfy8g1pi] ▶️ onResume
+     0.423ms [yj4vfy8g1pi] 📣 emit resume
+     0.877ms [yj4vfy8g1pi] 🔍 onLookup args=[null,"::1",6,"localhost"]
+     0.882ms [yj4vfy8g1pi] 📣 emit lookup null, "::1", 6, "localhost"
+     0.886ms [yj4vfy8g1pi] 🔍 onLookup args=[null,"127.0.0.1",4,"localhost"]
+     0.890ms [yj4vfy8g1pi] 📣 emit lookup null, "127.0.0.1", 4, "localhost"
+     3.218ms [yj4vfy8g1pi] 🔌 onConnect delay from lookup
+     3.223ms [yj4vfy8g1pi] 📣 emit connect
+     3.227ms [yj4vfy8g1pi] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+     3.232ms [yj4vfy8g1pi] ✅ onReady
+     3.236ms [yj4vfy8g1pi] 📣 emit ready
+    96.465ms [yj4vfy8g1pi] 🔒 onSecureConnect
+    96.470ms [yj4vfy8g1pi] 📣 emit secureConnect
+    96.474ms [yj4vfy8g1pi] 🔒 onSecure
+    96.478ms [yj4vfy8g1pi] 📣 emit secure
+    96.955ms [yj4vfy8g1pi] 💾 onData 143b
+    96.961ms [yj4vfy8g1pi] 📨 onResponseStart status=200 🇺🇸=passthrough
+    96.981ms [yj4vfy8g1pi] 📥 onResponseBody 2b
+    96.987ms [yj4vfy8g1pi] 🎬 onResponseEnd hasStream=true
+    96.991ms [yj4vfy8g1pi] 📣 emit data 143 chars
+    96.995ms [yj4vfy8g1pi] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+    97.002ms [yj4vfy8g1pi] ▶️ resume()
+    97.012ms [yj4vfy8g1pi] 📣 emit free
+    97.018ms [yj4vfy8g1pi] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+    97.239ms [yj4vfy8g1pi] 📣 emit close false
+
+
+
+
+

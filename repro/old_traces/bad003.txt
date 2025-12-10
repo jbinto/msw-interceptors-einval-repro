@@ -1,0 +1,46 @@
+     0.000ms [776sq7q4w7a] 🏗️  constructor starting
+     0.006ms [776sq7q4w7a] 🏗️  constructor complete https://localhost:64722/
+     0.029ms [776sq7q4w7a] ▶️ resume()
+     0.032ms [776sq7q4w7a] ✍️  write 95b 🇺🇸=unknown buffered=0
+     0.036ms [776sq7q4w7a] 🚀 onRequestStart path=/ keepAlive=true
+     0.070ms [776sq7q4w7a] ✍️  write 2b 🇺🇸=unknown buffered=1
+     0.077ms [776sq7q4w7a] ✍️  write 9b 🇺🇸=unknown buffered=2
+     0.080ms [776sq7q4w7a] 📦 onRequestBody 9b
+     0.084ms [776sq7q4w7a] ✍️  write 2b 🇺🇸=unknown buffered=3
+     0.087ms [776sq7q4w7a] ✍️  write 5b 🇺🇸=unknown buffered=4
+     0.090ms [776sq7q4w7a] 🏁 onRequestEnd hasStream=true
+     0.093ms [776sq7q4w7a] 🔬 _read(16384) ⏳=true 🔐=true 🇺🇸=unknown 🔗=https://localhost:64722/
+     0.097ms [776sq7q4w7a] 📣 emit resume
+     0.427ms [776sq7q4w7a] 💨 passthrough() 🧨=false ⏳=true
+     0.633ms [776sq7q4w7a] 🔌 created originalSocket
+     0.638ms [776sq7q4w7a] 🚽 flushing writeBuffer (5 items)
+     0.660ms [776sq7q4w7a] ▶️ onResume
+     0.663ms [776sq7q4w7a] 📣 emit resume
+     1.830ms [776sq7q4w7a] 🔍 onLookup args=[null,"::1",6,"localhost"]
+     1.836ms [776sq7q4w7a] 📣 emit lookup null, "::1", 6, "localhost"
+     1.840ms [776sq7q4w7a] 🔍 onLookup args=[null,"127.0.0.1",4,"localhost"]
+     1.844ms [776sq7q4w7a] 📣 emit lookup null, "127.0.0.1", 4, "localhost"
+   252.270ms [776sq7q4w7a] 🔌 onConnect delay from lookup
+   252.275ms [776sq7q4w7a] 📣 emit connect
+   252.280ms [776sq7q4w7a] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+   252.294ms [776sq7q4w7a] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/ ⛔️={"errno":-22,"code":"EINVAL","syscall":"read"}
+   252.305ms [776sq7q4w7a] 📣 emit error {"errno":-22,"code":"EINVAL","syscall":"read"}
+   252.328ms [776sq7q4w7a] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+   252.334ms [776sq7q4w7a] ⛔️ error event emitted, will destroy socket
+   252.415ms [776sq7q4w7a] ✅ onReady
+   252.422ms [776sq7q4w7a] 📣 emit ready
+   252.428ms [776sq7q4w7a] 💥 onError Error: read EINVAL
+   252.433ms [776sq7q4w7a] 📣 emit error {"errno":-22,"code":"EINVAL","syscall":"read"}
+   252.438ms [776sq7q4w7a] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+   253.083ms [776sq7q4w7a] 💥 onClose 🧨=true
+   253.088ms [776sq7q4w7a] 📣 emit close true
+
+
+
+
+
+
+
+
+
+

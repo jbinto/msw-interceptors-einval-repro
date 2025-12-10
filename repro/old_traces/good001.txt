@@ -1,0 +1,46 @@
+     0.000ms [6r9ss9qnj4n] 🏗️  constructor starting
+     0.010ms [6r9ss9qnj4n] 🏗️  constructor complete https://localhost:64722/
+     0.035ms [6r9ss9qnj4n] ▶️ resume()
+     0.040ms [6r9ss9qnj4n] ✍️  write 95b 🇺🇸=unknown buffered=0
+     0.046ms [6r9ss9qnj4n] 🚀 onRequestStart path=/ keepAlive=true
+     0.102ms [6r9ss9qnj4n] ✍️  write 2b 🇺🇸=unknown buffered=1
+     0.107ms [6r9ss9qnj4n] ✍️  write 9b 🇺🇸=unknown buffered=2
+     0.112ms [6r9ss9qnj4n] 📦 onRequestBody 9b
+     0.116ms [6r9ss9qnj4n] ✍️  write 2b 🇺🇸=unknown buffered=3
+     0.120ms [6r9ss9qnj4n] ✍️  write 5b 🇺🇸=unknown buffered=4
+     0.124ms [6r9ss9qnj4n] 🏁 onRequestEnd hasStream=true
+     0.130ms [6r9ss9qnj4n] 🔬 _read(16384) ⏳=true 🔐=true 🇺🇸=unknown 🔗=https://localhost:64722/
+     0.134ms [6r9ss9qnj4n] 📣 emit resume
+     0.203ms [6r9ss9qnj4n] 💨 passthrough() 🧨=false ⏳=true
+     0.321ms [6r9ss9qnj4n] 🔌 created originalSocket
+     0.326ms [6r9ss9qnj4n] 🚽 flushing writeBuffer (5 items)
+     0.336ms [6r9ss9qnj4n] ▶️ onResume
+     0.339ms [6r9ss9qnj4n] 📣 emit resume
+     0.849ms [6r9ss9qnj4n] 🔍 onLookup args=[null,"::1",6,"localhost"]
+     0.854ms [6r9ss9qnj4n] 📣 emit lookup null, "::1", 6, "localhost"
+     0.857ms [6r9ss9qnj4n] 🔍 onLookup args=[null,"127.0.0.1",4,"localhost"]
+     0.860ms [6r9ss9qnj4n] 📣 emit lookup null, "127.0.0.1", 4, "localhost"
+    91.712ms [6r9ss9qnj4n] 🔌 onConnect delay from lookup
+    91.717ms [6r9ss9qnj4n] 📣 emit connect
+    91.721ms [6r9ss9qnj4n] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+    91.725ms [6r9ss9qnj4n] ✅ onReady
+    91.729ms [6r9ss9qnj4n] 📣 emit ready
+   165.683ms [6r9ss9qnj4n] 🔒 onSecureConnect
+   165.690ms [6r9ss9qnj4n] 📣 emit secureConnect
+   165.694ms [6r9ss9qnj4n] 🔒 onSecure
+   165.698ms [6r9ss9qnj4n] 📣 emit secure
+   167.595ms [6r9ss9qnj4n] 🧾 onSession
+   167.600ms [6r9ss9qnj4n] 📣 emit session ""
+   167.613ms [6r9ss9qnj4n] 🧾 onSession
+   167.617ms [6r9ss9qnj4n] 📣 emit session ""
+   167.624ms [6r9ss9qnj4n] 💾 onData 143b
+   167.629ms [6r9ss9qnj4n] 📨 onResponseStart status=200 🇺🇸=passthrough
+   167.651ms [6r9ss9qnj4n] 📥 onResponseBody 2b
+   167.656ms [6r9ss9qnj4n] 🎬 onResponseEnd hasStream=true
+   167.661ms [6r9ss9qnj4n] 📣 emit data 143 chars
+   167.665ms [6r9ss9qnj4n] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+   167.675ms [6r9ss9qnj4n] ▶️ resume()
+   167.686ms [6r9ss9qnj4n] 📣 emit free
+   167.693ms [6r9ss9qnj4n] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:64722/
+   168.372ms [6r9ss9qnj4n] 📣 emit close false
+

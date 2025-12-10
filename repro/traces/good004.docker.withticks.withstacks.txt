@@ -1,0 +1,63 @@
+     0.000ms [⏱️481224] [🔧frub7wy3oua] 🏗️  constructor starting
+     0.011ms [⏱️481224] [🔧frub7wy3oua] 🏗️  constructor complete https://localhost:57597/
+     0.039ms [⏱️481233] [🔧frub7wy3oua] ▶️ resume()
+     0.042ms [⏱️481233] [🔧frub7wy3oua] ✍️  write 95b 🇺🇸=unknown buffered=0
+     0.046ms [⏱️481231] [🔧frub7wy3oua] 🚀 onRequestStart path=/ keepAlive=true
+     0.106ms [⏱️481233] [🔧frub7wy3oua] ✍️  write 2b 🇺🇸=unknown buffered=1
+     0.112ms [⏱️481233] [🔧frub7wy3oua] ✍️  write 9b 🇺🇸=unknown buffered=2
+     0.116ms [⏱️481231] [🔧frub7wy3oua] 📦 onRequestBody 9b
+     0.118ms [⏱️481233] [🔧frub7wy3oua] ✍️  write 2b 🇺🇸=unknown buffered=3
+     0.120ms [⏱️481233] [🔧frub7wy3oua] ✍️  write 5b 🇺🇸=unknown buffered=4
+     0.122ms [⏱️481231] [🔧frub7wy3oua] 🏁 onRequestEnd hasStream=true
+     0.126ms [⏱️481238] [🔧frub7wy3oua] 📖 read([0])
+     0.128ms [⏱️481238] [🔧frub7wy3oua] 🔬 _read(16384) ⏳=true 🔐=true 🇺🇸=unknown 🔗=https://localhost:57597/ origFlowing=undefined
+     0.131ms [⏱️481238] [🔧frub7wy3oua] 📣 emit resume
+     0.133ms [⏱️481238] [🔧frub7wy3oua] 📖 read()
+     0.277ms [⏱️481280] [🔧frub7wy3oua] 💨 passthrough() 🧨=false ⏳=true
+     0.537ms [⏱️481280] [🔧frub7wy3oua] 🔌 created originalSocket
+     0.547ms [⏱️481280] [🔧frub7wy3oua] 🚽 flushing writeBuffer (5 items)
+     0.559ms [⏱️481374] [🔧frub7wy3oua] ▶️ onResume
+     0.562ms [⏱️481374] [🔧frub7wy3oua] 📣 emit resume
+     1.035ms [⏱️481373] [🔧frub7wy3oua] 🔍 onLookup args=[null,"127.0.0.1",4,"localhost"]
+     1.038ms [⏱️481373] [🔧frub7wy3oua] 📣 emit lookup null, "127.0.0.1", 4, "localhost"
+     1.041ms [⏱️481373] [🔧frub7wy3oua] 🔍 onLookup args=[null,"::1",6,"localhost"]
+     1.043ms [⏱️481373] [🔧frub7wy3oua] 📣 emit lookup null, "::1", 6, "localhost"
+     4.002ms [⏱️481402] [🔧frub7wy3oua] 🔌 onConnect delay from lookup
+     4.010ms [⏱️481402] [🔧frub7wy3oua] 📣 emit connect
+     4.013ms [⏱️481402] [🔧frub7wy3oua] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:57597/ origFlowing=true
+     4.026ms [⏱️481402] [🔧frub7wy3oua] 🔧 HANDLE.readStart()
+     4.059ms [⏱️481402] [🔧frub7wy3oua]     at tryReadStart (node:net:705:30)
+     4.062ms [⏱️481402] [🔧frub7wy3oua]     at Socket._read (node:net:722:5)
+     4.063ms [⏱️481402] [🔧frub7wy3oua]     at MockHttpSocket._read (/workspace/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:550:11)
+     4.065ms [⏱️481402] [🔧frub7wy3oua]     at MockHttpSocket.<anonymous> (node:net:720:37)
+     4.066ms [⏱️481402] [🔧frub7wy3oua]     at Object.onceWrapper (node:events:638:28)
+     4.068ms [⏱️481402] [🔧frub7wy3oua]     at MockHttpSocket.emit (node:events:524:28)
+     4.069ms [⏱️481402] [🔧frub7wy3oua]     at MockHttpSocket.emit (/workspace/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:564:12)
+     4.071ms [⏱️481402] [🔧frub7wy3oua]     at TLSSocket.<anonymous> (/workspace/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:696:12)
+     4.076ms [⏱️481402] [🔧frub7wy3oua] ✅ onReady
+     4.079ms [⏱️481402] [🔧frub7wy3oua] 📣 emit ready
+   249.879ms [⏱️481371] [🔧frub7wy3oua] 🔒 onSecureConnect
+   249.887ms [⏱️481371] [🔧frub7wy3oua] 📣 emit secureConnect
+   249.890ms [⏱️481371] [🔧frub7wy3oua] 🔒 onSecure
+   249.892ms [⏱️481371] [🔧frub7wy3oua] 📣 emit secure
+   250.474ms [⏱️481371] [🔧frub7wy3oua] 💾 onData 143b
+   250.484ms [⏱️481371] [🔧frub7wy3oua] 📤 push([{"type":"Buffer","data":[72,84,84,80,47)
+   250.488ms [⏱️481232] [🔧frub7wy3oua] 📨 onResponseStart status=200 🇺🇸=passthrough
+   250.509ms [⏱️481232] [🔧frub7wy3oua] 📥 onResponseBody 2b
+   250.516ms [⏱️481232] [🔧frub7wy3oua] 🎬 onResponseEnd hasStream=true
+   250.519ms [⏱️481371] [🔧frub7wy3oua] 📣 emit data 143 chars
+   250.523ms [⏱️512750] [🔧frub7wy3oua] 📖 read([0])
+   250.525ms [⏱️512750] [🔧frub7wy3oua] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:57597/ origFlowing=true
+   250.534ms [⏱️481236] [🔧frub7wy3oua] ▶️ resume()
+   250.557ms [⏱️512773] [🔧frub7wy3oua] 📣 emit free
+   250.561ms [⏱️512776] [🔧frub7wy3oua] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:57597/
+   250.564ms [⏱️512776] [🔧frub7wy3oua] 🔧 HANDLE.close()
+   250.584ms [⏱️512776] [🔧frub7wy3oua]     at closeSocketHandle (node:net:341:18)
+   250.586ms [⏱️512776] [🔧frub7wy3oua]     at Socket._destroy (node:net:831:7)
+   250.587ms [⏱️512776] [🔧frub7wy3oua]     at _destroy (node:internal/streams/destroy:121:10)
+   250.589ms [⏱️512776] [🔧frub7wy3oua]     at MockHttpSocket.destroy (node:internal/streams/destroy:83:5)
+   250.590ms [⏱️512776] [🔧frub7wy3oua]     at Writable.destroy (node:internal/streams/writable:1122:11)
+   250.591ms [⏱️512776] [🔧frub7wy3oua]     at MockHttpSocket.destroy (/workspace/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:574:18)
+   250.593ms [⏱️512776] [🔧frub7wy3oua]     at MockHttpsAgent.<anonymous> (node:_http_agent:154:14)
+   250.594ms [⏱️512776] [🔧frub7wy3oua]     at MockHttpsAgent.emit (node:events:524:28)
+   250.892ms [⏱️481370] [🔧frub7wy3oua] 📣 emit close false

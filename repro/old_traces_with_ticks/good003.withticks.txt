@@ -1,0 +1,47 @@
+     0.000ms [⏱️443639] [🔧7ibptusa0ia] 🏗️  constructor starting
+     0.009ms [⏱️443639] [🔧7ibptusa0ia] 🏗️  constructor complete https://localhost:59372/
+     0.031ms [⏱️443648] [🔧7ibptusa0ia] ▶️ resume()
+     0.035ms [⏱️443648] [🔧7ibptusa0ia] ✍️  write 95b 🇺🇸=unknown buffered=0
+     0.040ms [⏱️443646] [🔧7ibptusa0ia] 🚀 onRequestStart path=/ keepAlive=true
+     0.085ms [⏱️443648] [🔧7ibptusa0ia] ✍️  write 2b 🇺🇸=unknown buffered=1
+     0.090ms [⏱️443648] [🔧7ibptusa0ia] ✍️  write 9b 🇺🇸=unknown buffered=2
+     0.095ms [⏱️443646] [🔧7ibptusa0ia] 📦 onRequestBody 9b
+     0.100ms [⏱️443648] [🔧7ibptusa0ia] ✍️  write 2b 🇺🇸=unknown buffered=3
+     0.104ms [⏱️443648] [🔧7ibptusa0ia] ✍️  write 5b 🇺🇸=unknown buffered=4
+     0.108ms [⏱️443646] [🔧7ibptusa0ia] 🏁 onRequestEnd hasStream=true
+     0.113ms [⏱️443653] [🔧7ibptusa0ia] 📖 read([0])
+     0.117ms [⏱️443653] [🔧7ibptusa0ia] 🔬 _read(16384) ⏳=true 🔐=true 🇺🇸=unknown 🔗=https://localhost:59372/ origFlowing=undefined
+     0.122ms [⏱️443653] [🔧7ibptusa0ia] 📣 emit resume
+     0.125ms [⏱️443653] [🔧7ibptusa0ia] 📖 read()
+     0.204ms [⏱️443695] [🔧7ibptusa0ia] 💨 passthrough() 🧨=false ⏳=true
+     0.435ms [⏱️443695] [🔧7ibptusa0ia] 🔌 created originalSocket
+     0.441ms [⏱️443695] [🔧7ibptusa0ia] 🚽 flushing writeBuffer (5 items)
+     0.455ms [⏱️443789] [🔧7ibptusa0ia] ▶️ onResume
+     0.462ms [⏱️443789] [🔧7ibptusa0ia] 📣 emit resume
+     0.885ms [⏱️443788] [🔧7ibptusa0ia] 🔍 onLookup args=[null,"::1",6,"localhost"]
+     0.893ms [⏱️443788] [🔧7ibptusa0ia] 📣 emit lookup null, "::1", 6, "localhost"
+     0.898ms [⏱️443788] [🔧7ibptusa0ia] 🔍 onLookup args=[null,"127.0.0.1",4,"localhost"]
+     0.902ms [⏱️443788] [🔧7ibptusa0ia] 📣 emit lookup null, "127.0.0.1", 4, "localhost"
+     2.844ms [⏱️443821] [🔧7ibptusa0ia] 🔌 onConnect delay from lookup
+     2.850ms [⏱️443821] [🔧7ibptusa0ia] 📣 emit connect
+     2.854ms [⏱️443821] [🔧7ibptusa0ia] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:59372/ origFlowing=true
+     2.859ms [⏱️443821] [🔧7ibptusa0ia] 🔧 HANDLE.readStart()
+     2.864ms [⏱️443821] [🔧7ibptusa0ia] ✅ onReady
+     2.869ms [⏱️443821] [🔧7ibptusa0ia] 📣 emit ready
+   169.571ms [⏱️443786] [🔧7ibptusa0ia] 🔒 onSecureConnect
+   169.578ms [⏱️443786] [🔧7ibptusa0ia] 📣 emit secureConnect
+   169.582ms [⏱️443786] [🔧7ibptusa0ia] 🔒 onSecure
+   169.586ms [⏱️443786] [🔧7ibptusa0ia] 📣 emit secure
+   170.842ms [⏱️443786] [🔧7ibptusa0ia] 💾 onData 143b
+   170.851ms [⏱️443786] [🔧7ibptusa0ia] 📤 push([{"type":"Buffer","data":[72,84,84,80,47)
+   170.857ms [⏱️443647] [🔧7ibptusa0ia] 📨 onResponseStart status=200 🇺🇸=passthrough
+   170.879ms [⏱️443647] [🔧7ibptusa0ia] 📥 onResponseBody 2b
+   170.889ms [⏱️443647] [🔧7ibptusa0ia] 🎬 onResponseEnd hasStream=true
+   170.894ms [⏱️443786] [🔧7ibptusa0ia] 📣 emit data 143 chars
+   170.900ms [⏱️474769] [🔧7ibptusa0ia] 📖 read([0])
+   170.904ms [⏱️474769] [🔧7ibptusa0ia] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:59372/ origFlowing=true
+   170.915ms [⏱️443651] [🔧7ibptusa0ia] ▶️ resume()
+   170.967ms [⏱️474792] [🔧7ibptusa0ia] 📣 emit free
+   171.064ms [⏱️474798] [🔧7ibptusa0ia] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:59372/
+   171.068ms [⏱️474798] [🔧7ibptusa0ia] 🔧 HANDLE.close()
+   171.807ms [⏱️443785] [🔧7ibptusa0ia] 📣 emit close false

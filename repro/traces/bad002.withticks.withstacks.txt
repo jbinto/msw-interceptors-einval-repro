@@ -1,0 +1,88 @@
+     0.000ms [⏱️311481] [🔧2beypyrqyo2] 🏗️  constructor starting
+     0.007ms [⏱️311481] [🔧2beypyrqyo2] 🏗️  constructor complete https://localhost:59144/
+     0.029ms [⏱️311490] [🔧2beypyrqyo2] ▶️ resume()
+     0.033ms [⏱️311490] [🔧2beypyrqyo2] ✍️  write 95b 🇺🇸=unknown buffered=0
+     0.037ms [⏱️311488] [🔧2beypyrqyo2] 🚀 onRequestStart path=/ keepAlive=true
+     0.079ms [⏱️311490] [🔧2beypyrqyo2] ✍️  write 2b 🇺🇸=unknown buffered=1
+     0.084ms [⏱️311490] [🔧2beypyrqyo2] ✍️  write 9b 🇺🇸=unknown buffered=2
+     0.089ms [⏱️311488] [🔧2beypyrqyo2] 📦 onRequestBody 9b
+     0.094ms [⏱️311490] [🔧2beypyrqyo2] ✍️  write 2b 🇺🇸=unknown buffered=3
+     0.097ms [⏱️311490] [🔧2beypyrqyo2] ✍️  write 5b 🇺🇸=unknown buffered=4
+     0.101ms [⏱️311488] [🔧2beypyrqyo2] 🏁 onRequestEnd hasStream=true
+     0.105ms [⏱️311495] [🔧2beypyrqyo2] 📖 read([0])
+     0.109ms [⏱️311495] [🔧2beypyrqyo2] 🔬 _read(16384) ⏳=true 🔐=true 🇺🇸=unknown 🔗=https://localhost:59144/ origFlowing=undefined
+     0.112ms [⏱️311495] [🔧2beypyrqyo2] 📣 emit resume
+     0.116ms [⏱️311495] [🔧2beypyrqyo2] 📖 read()
+     0.227ms [⏱️311537] [🔧2beypyrqyo2] 💨 passthrough() 🧨=false ⏳=true
+     0.354ms [⏱️311537] [🔧2beypyrqyo2] 🔌 created originalSocket
+     0.362ms [⏱️311537] [🔧2beypyrqyo2] 🚽 flushing writeBuffer (5 items)
+     0.374ms [⏱️311631] [🔧2beypyrqyo2] ▶️ onResume
+     0.379ms [⏱️311631] [🔧2beypyrqyo2] 📣 emit resume
+     0.987ms [⏱️311630] [🔧2beypyrqyo2] 🔍 onLookup args=[null,"::1",6,"localhost"]
+     0.993ms [⏱️311630] [🔧2beypyrqyo2] 📣 emit lookup null, "::1", 6, "localhost"
+     0.997ms [⏱️311630] [🔧2beypyrqyo2] 🔍 onLookup args=[null,"127.0.0.1",4,"localhost"]
+     1.002ms [⏱️311630] [🔧2beypyrqyo2] 📣 emit lookup null, "127.0.0.1", 4, "localhost"
+   251.217ms [⏱️311672] [🔧2beypyrqyo2] 🔧 HANDLE.close()
+   251.231ms [⏱️311672] [🔧2beypyrqyo2]     at Timeout.internalConnectMultipleTimeout [as _onTimeout] (node:net:1712:10)
+   251.235ms [⏱️311672] [🔧2beypyrqyo2]     at listOnTimeout (node:internal/timers:583:11)
+   251.238ms [⏱️311672] [🔧2beypyrqyo2]     at process.processTimers (node:internal/timers:519:7)
+   251.256ms [⏱️311672] [🔧2beypyrqyo2] 🔧 HANDLE.close()
+   251.271ms [⏱️311672] [🔧2beypyrqyo2]     at TLSSocket.reinitializeHandle (node:net:1265:17)
+   251.275ms [⏱️311672] [🔧2beypyrqyo2]     at TLSSocket.reinitializeHandle (node:_tls_wrap:727:45)
+   251.278ms [⏱️311672] [🔧2beypyrqyo2]     at internalConnectMultiple (node:net:1131:30)
+   251.280ms [⏱️311672] [🔧2beypyrqyo2]     at Timeout.internalConnectMultipleTimeout (node:net:1716:5)
+   251.283ms [⏱️311672] [🔧2beypyrqyo2]     at listOnTimeout (node:internal/timers:583:11)
+   251.286ms [⏱️311672] [🔧2beypyrqyo2]     at process.processTimers (node:internal/timers:519:7)
+  1301.762ms [⏱️348072] [🔧2beypyrqyo2] 🔌 onConnect delay from lookup
+  1301.769ms [⏱️348072] [🔧2beypyrqyo2] 📣 emit connect
+  1301.777ms [⏱️348072] [🔧2beypyrqyo2] 🔬 _read(16384) ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:59144/ origFlowing=true
+  1301.782ms [⏱️348072] [🔧2beypyrqyo2] 🔧 HANDLE.readStart()
+  1301.805ms [⏱️348072] [🔧2beypyrqyo2]     at tryReadStart (node:net:705:30)
+  1301.811ms [⏱️348072] [🔧2beypyrqyo2]     at Socket._read (node:net:722:5)
+  1301.815ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket._read (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:550:11)
+  1301.819ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.<anonymous> (node:net:720:37)
+  1301.822ms [⏱️348072] [🔧2beypyrqyo2]     at Object.onceWrapper (node:events:638:28)
+  1301.826ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.emit (node:events:524:28)
+  1301.829ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.emit (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:564:12)
+  1301.863ms [⏱️348072] [🔧2beypyrqyo2]     at TLSSocket.<anonymous> (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:696:12)
+  1301.962ms [⏱️348072] [🔧2beypyrqyo2] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:59144/ ⛔️={"errno":-22,"code":"EINVAL","syscall":"read"}
+  1301.982ms [⏱️348072] [🔧2beypyrqyo2] 📣 emit error {"errno":-22,"code":"EINVAL","syscall":"read"}
+  1302.035ms [⏱️348072] [🔧2beypyrqyo2] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:59144/
+  1302.050ms [⏱️348072] [🔧2beypyrqyo2] 🔧 HANDLE.close()
+  1302.100ms [⏱️348072] [🔧2beypyrqyo2]     at closeSocketHandle (node:net:341:18)
+  1302.112ms [⏱️348072] [🔧2beypyrqyo2]     at Socket._destroy (node:net:831:7)
+  1302.124ms [⏱️348072] [🔧2beypyrqyo2]     at _destroy (node:internal/streams/destroy:121:10)
+  1302.132ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.destroy (node:internal/streams/destroy:83:5)
+  1302.149ms [⏱️348072] [🔧2beypyrqyo2]     at Writable.destroy (node:internal/streams/writable:1122:11)
+  1302.156ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.destroy (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:574:18)
+  1302.163ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.socketErrorListener (node:_http_client:516:10)
+  1302.170ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.emit (node:events:536:35)
+  1302.190ms [⏱️348072] [🔧2beypyrqyo2] ⛔️ error event emitted, will destroy socket
+  1302.218ms [⏱️348072] [🔧2beypyrqyo2]     at Object.onceWrapper (node:events:639:26)
+  1302.223ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.emit (node:events:536:35)
+  1302.226ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.emit (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:564:12)
+  1302.229ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.destroy (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:572:12)
+  1302.232ms [⏱️348072] [🔧2beypyrqyo2]     at tryReadStart (node:net:707:12)
+  1302.235ms [⏱️348072] [🔧2beypyrqyo2]     at Socket._read (node:net:722:5)
+  1302.238ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket._read (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:550:11)
+  1302.241ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.<anonymous> (node:net:720:37)
+  1302.244ms [⏱️348072] [🔧2beypyrqyo2] Error Details:
+  1302.246ms [⏱️348072] [🔧2beypyrqyo2] read EINVAL
+  1302.250ms [⏱️348072] [🔧2beypyrqyo2] Error: read EINVAL
+  1302.252ms [⏱️348072] [🔧2beypyrqyo2]     at tryReadStart (node:net:707:20)
+  1302.255ms [⏱️348072] [🔧2beypyrqyo2]     at Socket._read (node:net:722:5)
+  1302.282ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket._read (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:550:11)
+  1302.307ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.<anonymous> (node:net:720:37)
+  1302.320ms [⏱️348072] [🔧2beypyrqyo2]     at Object.onceWrapper (node:events:638:28)
+  1302.329ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.emit (node:events:524:28)
+  1302.337ms [⏱️348072] [🔧2beypyrqyo2]     at MockHttpSocket.emit (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:564:12)
+  1302.344ms [⏱️348072] [🔧2beypyrqyo2]     at TLSSocket.<anonymous> (/Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/@mswjs+interceptors@file+../node_modules/@mswjs/interceptors/lib/node/chunk-3ESURNSC.js:696:12)
+  1302.356ms [⏱️348072] [🔧2beypyrqyo2]     at TLSSocket.emit (node:events:536:35)
+  1302.365ms [⏱️348072] [🔧2beypyrqyo2]     at /Users/jbuchanan/dev/msw-interceptors-einval-repro/repro/node_modules/.pnpm/dd-trace@5.80.0_@openfeature+core@1.9.1_@openfeature+server-sdk@1.18.0_@openfeature+core@1.9.1_/node_modules/dd-trace/packages/datadog-instrumentations/src/net.js:62:27
+  1302.429ms [⏱️348072] [🔧2beypyrqyo2] ✅ onReady
+  1302.439ms [⏱️348072] [🔧2beypyrqyo2] 📣 emit ready
+  1302.447ms [⏱️493608] [🔧2beypyrqyo2] 💥 onError Error: read EINVAL
+  1302.454ms [⏱️493608] [🔧2beypyrqyo2] 📣 emit error {"errno":-22,"code":"EINVAL","syscall":"read"}
+  1302.460ms [⏱️493608] [🔧2beypyrqyo2] 🧨 _destroy ⏳=false 🔐=true 🇺🇸=passthrough 🔗=https://localhost:59144/
+  1302.511ms [⏱️348070] [🔧2beypyrqyo2] 💥 onClose 🧨=true
+  1302.517ms [⏱️348070] [🔧2beypyrqyo2] 📣 emit close true

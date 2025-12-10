@@ -1,4 +1,5 @@
 import net from 'node:net'
+import { executionAsyncId } from 'node:async_hooks'
 import {
   type HeadersCallback,
   HTTPParser,
@@ -19,6 +20,44 @@ import { getRawFetchHeaders } from './utils/recordRawHeaders'
 import { FetchResponse } from '../../utils/fetchUtils'
 import { setRawRequest } from '../../getRawRequest'
 import { setRawRequestBodyStream } from '../../utils/node'
+
+// ANSI colors
+const C = {
+  RESET: '\x1b[0m',
+  CYAN: '\x1b[36m',
+  YELLOW: '\x1b[33m',
+  GREEN: '\x1b[32m',
+  RED: '\x1b[31m',
+  BLUE: '\x1b[34m',
+  MAGENTA: '\x1b[35m',
+  GRAY: '\x1b[90m',
+  WHITE: '\x1b[97m',
+}
+
+// Hash string to consistent color
+function hashColor(str: string): string {
+  const hash = str.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  const colorKeys = [C.CYAN, C.YELLOW, C.GREEN, C.MAGENTA, C.BLUE]
+  return colorKeys[hash % colorKeys.length]
+}
+
+// Create a logger bound to a socket ID with consistent coloring
+function createSocketLogger(socketID: string) {
+  const idColor = hashColor(socketID)
+  const prefix = `${idColor}[🔧${socketID}]${C.RESET}`
+  const t0 = performance.now()
+
+  return {
+    log: (msg: string) => {
+      const elapsed = (performance.now() - t0).toFixed(3).padStart(10)
+      const tick = executionAsyncId()
+      const tickColor = hashColor(String(tick))
+      console.error(`${C.GRAY}${elapsed}ms${C.RESET} [⏱️${tickColor}${tick}${C.RESET}] ${prefix} ${msg}`)
+    },
+    h: hashColor,
+  }
+}
+
 
 type HttpConnectionOptions = any
 
@@ -46,6 +85,7 @@ interface MockHttpSocketOptions {
 export const kRequestId = Symbol('kRequestId')
 
 export class MockHttpSocket extends MockSocket {
+  [x: string]: any
   private connectionOptions: HttpConnectionOptions
   private createConnection: () => net.Socket
   private baseUrl: URL
@@ -66,10 +106,22 @@ export class MockHttpSocket extends MockSocket {
   private responseParser: HTTPParser<1>
   private responseStream?: Readable
   private originalSocket?: net.Socket
+  private log!: ReturnType<typeof createSocketLogger>
 
   constructor(options: MockHttpSocketOptions) {
+    // CRITICAL: Initialize socketID and logger FIRST, before super()
+    // because write callbacks can fire synchronously during super() construction
+    const socketID = Math.random().toString(36).slice(2)
+    const log = createSocketLogger(socketID)
+    log.log(`🏗️  constructor starting`)
+
     super({
       write: (chunk, encoding, callback) => {
+        log.log(
+          `✍️  write ${C.BLUE}${Buffer.isBuffer(chunk) ? chunk.length : String(chunk).length
+          }b${C.RESET} 🇺🇸=${C.YELLOW}${this.socketState}${C.RESET} buffered=${this.writeBuffer.length
+          }`
+        )
         // Buffer the writes so they can be flushed in case of the original connection
         // and when reading the request body in the interceptor. If the connection has
         // been established, no need to buffer the chunks anymore, they will be forwarded.
@@ -84,6 +136,10 @@ export class MockHttpSocket extends MockSocket {
            * @see https://github.com/mswjs/interceptors/issues/682
            */
           if (this.socketState === 'passthrough') {
+            this.log.log(
+              `🔀 forwarding ${C.BLUE}${Buffer.isBuffer(chunk) ? chunk.length : String(chunk).length
+              }b${C.RESET} to originalSocket`
+            )
             this.originalSocket?.write(chunk, encoding, callback)
           }
 
@@ -106,12 +162,18 @@ export class MockHttpSocket extends MockSocket {
       },
     })
 
+    this.socketID = socketID
+    this.log = log
+
     this.connectionOptions = options.connectionOptions
     this.createConnection = options.createConnection
     this.onRequest = options.onRequest
     this.onResponse = options.onResponse
 
     this.baseUrl = baseUrlFromConnectionOptions(this.connectionOptions)
+    this.log.log(
+      `🏗️  constructor complete ${C.GRAY}${this.baseUrl.href}${C.RESET}`
+    )
 
     // Request parser.
     this.requestParser = new HTTPParser()
@@ -147,9 +209,86 @@ export class MockHttpSocket extends MockSocket {
       Reflect.set(this, 'getSession', () => undefined)
       Reflect.set(this, 'isSessionReused', () => false)
     }
+
+    // Intercept key socket methods for debugging
+    this._interceptSocketMethods()
+  }
+
+  private _interceptSocketMethods(): void {
+    const intercept = (
+      method: string,
+      emoji: string,
+      handler?: (result: any, ...args: any[]) => void
+    ) => {
+      const original = (this as any)[method]?.bind(this)
+      if (!original) return
+        ; (this as any)[method] = (...args: any[]) => {
+          this.log.log(
+            `${emoji} ${C.MAGENTA}${method}${C.RESET}(${args.length > 0
+              ? C.GRAY + JSON.stringify(args).slice(0, 40) + C.RESET
+              : ''
+            })`
+          )
+          const result = original(...args)
+          handler?.(result, ...args)
+          return result
+        }
+    }
+
+    // Critical for understanding flow
+    intercept('connect', '🔌')
+    intercept('end', '🛑')
+    intercept('pause', '⏸️')
+    intercept('resume', '▶️')
+    intercept('ref', '📌')
+    intercept('unref', '📍')
+
+    // These are cheap and might reveal issues
+    intercept('setTimeout', '⏲️')
+    intercept('setKeepAlive', '💚')
+    intercept('setNoDelay', '⚡')
+
+    // pipe/unpipe can be relevant for streams
+    intercept('pipe', '🔀', (result, dest) => {
+      this.log.log(`  └─ piping to ${dest?.constructor?.name || 'unknown'}`)
+    })
+    intercept('unpipe', '🔀', (result, dest) => {
+      this.log.log(`  └─ unpiping from ${dest?.constructor?.name || 'all'}`)
+    })
+
+    // Stream methods
+    intercept('read', '📖')
+    intercept('push', '📤')
+    intercept('unshift', '📥')
+  }
+
+  public _read(size: number): void {
+    this.log.log(
+      `🔬 _read(${C.BLUE}${size}${C.RESET}) ⏳=${this.connecting} 🔐=${this.encrypted} 🇺🇸=${C.YELLOW}${this.socketState}${C.RESET} 🔗=${C.GRAY}${this.baseUrl.href}${C.RESET} origFlowing=${this.originalSocket?.readableFlowing}`
+    )
+
+    if (process.env.MSW_USE_FIX === 'true') {
+      if (this.socketState === 'passthrough') {
+        // console.warn(' _read noop in passthrough mode')
+        return
+      }
+    }
+
+    // console.warn(' _read calling super')
+    super._read(size)
   }
 
   public emit(event: string | symbol, ...args: any[]): boolean {
+    const eventStr = String(event)
+    this.log.log(
+      `📣 emit ${this.log.h(eventStr)}${eventStr}${C.RESET} ${args
+        .map((arg) => {
+          return Buffer.isBuffer(arg)
+            ? String(arg).replace(/[^\x20-\x7E\n\r\t]/g, '?').length + ' chars'
+            : JSON.stringify(arg)
+        })
+        .join(', ')}`
+    )
     const emitEvent = super.emit.bind(this, event as any, ...args)
 
     if (this.responseListenersPromise) {
@@ -161,6 +300,12 @@ export class MockHttpSocket extends MockSocket {
   }
 
   public destroy(error?: Error | undefined): this {
+    this.log.log(
+      `🧨 _destroy ⏳=${this.connecting} 🔐=${this.encrypted} 🇺🇸=${C.YELLOW}${this.socketState
+      }${C.RESET} 🔗=${C.GRAY}${this.baseUrl.href}${C.RESET}${error ? ` ⛔️=${C.RED}${JSON.stringify(error)}${C.RESET}` : ''
+      }`
+    )
+
     // Destroy the response parser when the socket gets destroyed.
     // Normally, we should listen to the "close" event but it
     // can be suppressed by using the "emitClose: false" option.
@@ -178,14 +323,17 @@ export class MockHttpSocket extends MockSocket {
    * its data/events through this Socket.
    */
   public passthrough(): void {
+    this.log.log(`💨 passthrough() 🧨=${this.destroyed} ⏳=${this.connecting}`)
     this.socketState = 'passthrough'
 
     if (this.destroyed) {
+      this.log.log(`💨 passthrough() but ${C.RED}destroyed${C.RESET}: bailing`)
       return
     }
 
     const socket = this.createConnection()
     this.originalSocket = socket
+    this.log.log(`🔌 created ${C.GREEN}originalSocket${C.RESET}`)
 
     /**
      * @note Inherit the original socket's connection handle.
@@ -194,8 +342,32 @@ export class MockHttpSocket extends MockSocket {
      * @see https://github.com/nodejs/node/blob/b18153598b25485ce4f54d0c5cb830a9457691ee/lib/net.js#L734
      */
     if ('_handle' in socket) {
+      // Monkey-patch the handle to log interactions
+      // We cannot use a Proxy because V8 internals (SetInternalField) explode
+      // when dealing with a Proxy wrapping a native handle.
+      const originalHandle = (socket as any)._handle
+      if (originalHandle && !originalHandle._isInstrumented) {
+        const log = this.log
+        const methods = ['readStart', 'readStop', 'close']
+
+        for (const method of methods) {
+          const original = originalHandle[method]
+          if (typeof original === 'function') {
+            originalHandle[method] = function (this: any, ...args: any[]) {
+              log.log(`🔧 HANDLE.${method}()`)
+              const stack = new Error().stack?.split('\n').slice(2, 10) || []
+              for (const line of stack) {
+                log.log(`${C.GRAY}${line}${C.RESET}`)
+              }
+              return original.apply(this, args)
+            }
+          }
+        }
+        originalHandle._isInstrumented = true
+      }
+
       Object.defineProperty(this, '_handle', {
-        value: socket._handle,
+        value: originalHandle,
         enumerable: true,
         writable: true,
       })
@@ -203,6 +375,21 @@ export class MockHttpSocket extends MockSocket {
 
     // If the developer destroys the socket, destroy the original connection.
     this.once('error', (error) => {
+      this.log.log(
+        `⛔️ ${C.RED}error event${C.RESET} emitted, will destroy socket`
+      )
+      const stack = new Error().stack?.split('\n').slice(2, 10) || []
+      for (const line of stack) {
+        this.log.log(`${C.GRAY}${line}${C.RESET}`)
+      }
+
+      this.log.log(`${C.RED}Error Details:${C.RESET}`)
+      this.log.log(`${C.RED}${error.message}${C.RESET}`)
+      if (error.stack) {
+        for (const line of error.stack.split('\n')) {
+          this.log.log(`${C.RED}${line}${C.RESET}`)
+        }
+      }
       socket.destroy(error)
     })
 
@@ -214,6 +401,10 @@ export class MockHttpSocket extends MockSocket {
     // gets reused for different requests.
     let writeArgs: NormalizedSocketWriteArgs | undefined
     let headersWritten = false
+
+    this.log.log(
+      `🚽 flushing writeBuffer (${C.BLUE}${this.writeBuffer.length}${C.RESET} items)`
+    )
 
     while ((writeArgs = this.writeBuffer.shift())) {
       if (writeArgs !== undefined) {
@@ -272,32 +463,105 @@ export class MockHttpSocket extends MockSocket {
     }
 
     socket
-      .on('lookup', (...args) => this.emit('lookup', ...args))
+      .on('lookup', (...args) => {
+        this.log.log(
+          `🔍 ${this.log.h('lookup')}onLookup${C.RESET} ${C.GRAY
+          }args=${JSON.stringify(args).slice(0, 60)}${C.RESET}`
+        )
+        this.emit('lookup', ...args)
+      })
       .on('connect', () => {
+        this.log.log(
+          `🔌 ${this.log.h('connect')}onConnect${C.RESET} ${C.GRAY
+          }delay from lookup${C.RESET}`
+        )
+
+        // Check for stale handle (Happy Eyeballs hypothesis)
+        const currentHandle = (socket as any)._handle
+        const myHandle = (this as any)._handle
+        if (currentHandle !== myHandle) {
+          this.log.log(`${C.RED}⚠️  HANDLE MISMATCH!${C.RESET}`)
+          this.log.log(`   My Handle: ${myHandle?.constructor?.name} 🔧=${!!myHandle?._isInstrumented} 🆔=${myHandle?.fd} 📖=${myHandle?.reading}`)
+          this.log.log(`   Socket Handle: ${currentHandle?.constructor?.name} 🔧=${!!currentHandle?._isInstrumented} 🆔=${currentHandle?.fd} 📖=${currentHandle?.reading}`)
+          this.log.log(`   ${C.RED}Object references are different!${C.RESET}`)
+        } else {
+          this.log.log(`${C.GREEN}✅ Handles match${C.RESET}`)
+        }
+
         this.connecting = socket.connecting
         this.emit('connect')
       })
-      .on('secureConnect', () => this.emit('secureConnect'))
-      .on('secure', () => this.emit('secure'))
-      .on('session', (session) => this.emit('session', session))
-      .on('ready', () => this.emit('ready'))
-      .on('drain', () => this.emit('drain'))
+      .on('secureConnect', () => {
+        this.log.log(
+          `🔒 ${this.log.h('secureConnect')}onSecureConnect${C.RESET}`
+        )
+        this.emit('secureConnect')
+      })
+      .on('secure', () => {
+        this.log.log(`🔒 ${this.log.h('secure')}onSecure${C.RESET}`)
+        this.emit('secure')
+      })
+      .on('session', (session) => {
+        this.log.log(`🧾 ${this.log.h('session')}onSession${C.RESET}`)
+        this.emit('session', process.env.NOISY === 'true' ? session : '')
+      })
+      .on('ready', () => {
+        this.log.log(`✅ ${this.log.h('ready')}onReady${C.RESET}`)
+        this.emit('ready')
+      })
+      .on('drain', () => {
+        this.log.log(`💧 ${this.log.h('drain')}onDrain${C.RESET}`)
+        this.emit('drain')
+      })
       .on('data', (chunk) => {
+        // print sanitized
+        this.log.log(
+          `💾 ${this.log.h('data')}onData${C.RESET} ${C.BLUE}${chunk.length}b${C.RESET
+          }${process.env.NOISY === 'true'
+            ? ' ' + String(chunk).replace(/[^\x20-\x7E\n\r\t]/g, '?')
+            : ''
+          }`
+        )
         // Push the original response to this socket
         // so it triggers the HTTP response parser. This unifies
         // the handling pipeline for original and mocked response.
         this.push(chunk)
       })
       .on('error', (error) => {
+        this.log.log(
+          `💥 ${this.log.h('error')}onError${C.RESET} ${C.RED}${String(
+            error
+          ).replace(/[^\x20-\x7E\n\r\t]/g, '?')}${C.RESET}`
+        )
         Reflect.set(this, '_hadError', Reflect.get(socket, '_hadError'))
         this.emit('error', error)
       })
-      .on('resume', () => this.emit('resume'))
-      .on('timeout', () => this.emit('timeout'))
-      .on('prefinish', () => this.emit('prefinish'))
-      .on('finish', () => this.emit('finish'))
-      .on('close', (hadError) => this.emit('close', hadError))
-      .on('end', () => this.emit('end'))
+      .on('resume', () => {
+        this.log.log(`▶️ ${this.log.h('resume')}onResume${C.RESET}`)
+        this.emit('resume')
+      })
+      .on('timeout', () => {
+        this.log.log(`⏰ ${this.log.h('timeout')}onTimeout${C.RESET}`)
+        this.emit('timeout')
+      })
+      .on('prefinish', () => {
+        this.log.log(`⏳ ${this.log.h('prefinish')}onPrefinish${C.RESET}`)
+        this.emit('prefinish')
+      })
+      .on('finish', () => {
+        this.log.log(`✅ ${this.log.h('finish')}onFinish${C.RESET}`)
+        this.emit('finish')
+      })
+      .on('close', (hadError) => {
+        this.log.log(
+          `💥 ${this.log.h('close')}onClose${C.RESET} 🧨=${hadError}`
+        )
+        this.emit('close', hadError)
+      })
+      .on('end', () => {
+        this.log.log(`🛑 ${this.log.h('end')}onEnd${C.RESET}`)
+        this.emit('end')
+      })
   }
 
   /**
@@ -305,9 +569,17 @@ export class MockHttpSocket extends MockSocket {
    * HTTP message and push it to the socket.
    */
   public async respondWith(response: Response): Promise<void> {
+    const statusColor =
+      response.status < 300 ? C.GREEN : response.status < 400 ? C.YELLOW : C.RED
+    this.log.log(
+      `📤 respondWith status=${statusColor}${response.status}${C.RESET} 🧨=${this.destroyed} 🇺🇸=${C.YELLOW}${this.socketState}${C.RESET}`
+    )
     // Ignore the mocked response if the socket has been destroyed
     // (e.g. aborted or timed out),
     if (this.destroyed) {
+      this.log.log(
+        `📤 respondWith: socket ${C.RED}destroyed${C.RESET}, bailing`
+      )
       return
     }
 
@@ -321,6 +593,7 @@ export class MockHttpSocket extends MockSocket {
     // to emulate a successful connection.
     this.mockConnect()
     this.socketState = 'mock'
+    this.log.log(`🎭 socketState → ${C.YELLOW}mock${C.RESET}`)
 
     // Flush the write buffer to trigger write callbacks
     // if it hasn't been flushed already (e.g. someone started reading request stream).
@@ -344,7 +617,7 @@ export class MockHttpSocket extends MockSocket {
           this.push(chunk, encoding)
           callback?.()
         },
-        read() {},
+        read() { },
       })
     )
 
@@ -403,6 +676,7 @@ export class MockHttpSocket extends MockSocket {
 
     // Close the socket if the connection wasn't marked as keep-alive.
     if (!this.shouldKeepAlive) {
+      this.log.log(`🔒 closing socket (no keep-alive)`)
       this.emit('readable')
 
       /**
@@ -421,10 +695,16 @@ export class MockHttpSocket extends MockSocket {
    * Close this socket connection with the given error.
    */
   public errorWith(error?: Error): void {
+    this.log.log(
+      `💣 errorWith ${error ? C.RED + error.message + C.RESET : 'no error'}`
+    )
     this.destroy(error)
   }
 
   private mockConnect(): void {
+    this.log.log(
+      `🎭 mockConnect() ⏳=${this.connecting} 🇺🇸=${C.YELLOW}${this.socketState}${C.RESET}`
+    )
     // Calling this method immediately puts the socket
     // into the connected state.
     this.connecting = false
@@ -457,13 +737,21 @@ export class MockHttpSocket extends MockSocket {
       this.emit(
         'session',
         this.connectionOptions.session ||
-          Buffer.from('mock-session-renegotiate')
+        Buffer.from('mock-session-renegotiate')
       )
       this.emit('session', Buffer.from('mock-session-resume'))
     }
   }
 
   private flushWriteBuffer(): void {
+    const callbackCount = this.writeBuffer.filter(
+      (w) => typeof w[2] === 'function'
+    ).length
+    if (callbackCount > 0) {
+      this.log.log(
+        `🚿 flushWriteBuffer() callbacks=${C.BLUE}${callbackCount}${C.RESET}/${C.BLUE}${this.writeBuffer.length}${C.RESET}`
+      )
+    }
     for (const writeCall of this.writeBuffer) {
       if (typeof writeCall[2] === 'function') {
         writeCall[2]()
@@ -500,6 +788,9 @@ export class MockHttpSocket extends MockSocket {
     ____,
     shouldKeepAlive
   ) => {
+    this.log.log(
+      `🚀 onRequestStart path=${C.GRAY}${path}${C.RESET} keepAlive=${shouldKeepAlive}`
+    )
     this.shouldKeepAlive = shouldKeepAlive
 
     const url = new URL(path || '', this.baseUrl)
@@ -573,6 +864,9 @@ export class MockHttpSocket extends MockSocket {
      * @see https://github.com/mswjs/interceptors/issues/378
      */
     if (this.request.headers.has(INTERNAL_REQUEST_ID_HEADER_NAME)) {
+      this.log.log(
+        `🔁 ${C.MAGENTA}internal request${C.RESET} detected, passing through`
+      )
       this.passthrough()
       return
     }
@@ -585,6 +879,7 @@ export class MockHttpSocket extends MockSocket {
   }
 
   private onRequestBody(chunk: Buffer): void {
+    this.log.log(`📦 onRequestBody ${C.BLUE}${chunk.length}b${C.RESET}`)
     invariant(
       this.requestStream,
       'Failed to write to a request stream: stream does not exist'
@@ -594,6 +889,7 @@ export class MockHttpSocket extends MockSocket {
   }
 
   private onRequestEnd(): void {
+    this.log.log(`🏁 onRequestEnd hasStream=${!!this.requestStream}`)
     // Request end can be called for requests without body.
     if (this.requestStream) {
       this.requestStream.push(null)
@@ -620,6 +916,10 @@ export class MockHttpSocket extends MockSocket {
     status,
     statusText
   ) => {
+    const statusColor = status < 300 ? C.GREEN : status < 400 ? C.YELLOW : C.RED
+    this.log.log(
+      `📨 onResponseStart status=${statusColor}${status}${C.RESET} 🇺🇸=${C.YELLOW}${this.socketState}${C.RESET}`
+    )
     const headers = FetchResponse.parseRawHeaders([
       ...this.responseRawHeadersBuffer,
       ...(rawHeaders || []),
@@ -636,8 +936,8 @@ export class MockHttpSocket extends MockSocket {
        */
       FetchResponse.isResponseWithBody(status)
         ? (Readable.toWeb(
-            (this.responseStream = new Readable({ read() {} }))
-          ) as any)
+          (this.responseStream = new Readable({ read() { } }))
+        ) as any)
         : null,
       {
         url,
@@ -673,6 +973,7 @@ export class MockHttpSocket extends MockSocket {
   }
 
   private onResponseBody(chunk: Buffer) {
+    this.log.log(`📥 onResponseBody ${C.BLUE}${chunk.length}b${C.RESET}`)
     invariant(
       this.responseStream,
       'Failed to write to a response stream: stream does not exist'
@@ -682,6 +983,7 @@ export class MockHttpSocket extends MockSocket {
   }
 
   private onResponseEnd(): void {
+    this.log.log(`🎬 onResponseEnd hasStream=${!!this.responseStream}`)
     // Response end can be called for responses without body.
     if (this.responseStream) {
       this.responseStream.push(null)
