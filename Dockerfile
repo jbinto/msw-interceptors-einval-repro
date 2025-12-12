@@ -1,29 +1,26 @@
-# Multi-architecture support
-FROM --platform=$BUILDPLATFORM node:20.19.5-slim
+FROM node:20.19.5-slim
 
-# Install OpenSSL for certificate generation
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /workspace
-
-# Copy the entire interceptors project
-COPY . .
-
-# Install pnpm
+# TODO: remove ssl requirement
+# Installing iproute2 for `tc` to slow down network
+RUN apt-get update && apt-get install -y openssl iproute2 && rm -rf /var/lib/apt/lists/*
 RUN npm install -g pnpm@10.23.0
 
-# Build the parent project to generate lib/ files
+# Install @mswjs/interceptors dependencies
+WORKDIR /workspace
+COPY package.json pnpm-lock.yaml ./
 ENV CI=true
-RUN pnpm install --no-frozen-lockfile || true
-
-# Set working directory to repro folder
-WORKDIR /workspace/repro
-
-# Install repro dependencies
 RUN pnpm install --no-frozen-lockfile
 
-# Make test.js executable
-RUN chmod +x test.js
+# Build @mswjs/interceptors
+COPY . .
+RUN pnpm build
 
-# Default command shows available scripts
-CMD ["sh", "-c", "echo 'Available commands:' && echo '  pnpm test:baseline' && echo '  pnpm test:fix' && echo '  pnpm test:matrix:baseline' && echo '  pnpm test:matrix:fix' && echo '' && echo 'Run: docker run --rm einval-repro pnpm test:baseline'"]
+# Install repro dependencies
+WORKDIR /workspace/repro
+COPY repro/package.json repro/pnpm-lock.yaml ./repro/
+RUN pnpm install --no-frozen-lockfile
+
+# Entrypoint checks for ipv4/ipv6 dual stack and sets up network delay
+RUN chmod +x /workspace/docker-entrypoint.sh
+ENTRYPOINT ["/workspace/docker-entrypoint.sh"]
+CMD ["sh", "-c", "echo 'Please use docker-compose up baseline or docker-compose up fix'"]
