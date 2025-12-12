@@ -2,7 +2,31 @@
 
 This is a fork of `@mswjs/interceptors` and is an attempt to explain/solve https://github.com/mswjs/interceptors/issues/753.
 
-Background: At my job, we upgraded from `nock@13` to `nock@14` (and also `nock@15.0.0-beta6`). We immediately started experiencing strange `EINVAL`, `ECANCELED`, out of memory errors. We use [Datadog CI Visibility](https://docs.datadoghq.com/continuous_integration/) via the [dd-trace-js](https://github.com/datadog/dd-trace-js) npm package. Disabling this
+---
+
+Background: At my job, we use `nock` in our Node.js test suites to mock external HTTP calls. Nock works by intercepting the built-in Node.js `http` library and allows you to spy on outgoing requests and/or stub out their responses. Nock can be configured either to allow real outbound traffic for unmatched patterns, or to block outbound traffic and to treat any network activity that isn't "covered" as a test failure.
+
+We also subscribe to [Datadog CI Visibility](https://docs.datadoghq.com/continuous_integration/) (via the [dd-trace-js](https://github.com/datadog/dd-trace-js) npm package) to monitor and improve our CI pipelines and test suites. This means while tests are running, telemetry is being collected and submitted to a Datadog ingestion endpoint.
+
+The trouble started when we upgraded from `nock@13` to `nock@14` (and also `nock@15.0.0-beta6`). We immediately started experiencing strange `EINVAL`, `ECANCELED`, out of memory errors. We use Disabling this made the errors disappear, but we really want to continue using the CI Visibility product so I started to investigate.
+
+I spent a long time chasing my tail, pursuing the idea that Datadog's heavy monkey-patching + instrumentation was conflicting with the new `interceptors`. I finally figured out that the bad behavior was caused by simply making a large number of real, unmocked HTTP requests while `nock` was loaded and activated in-process. Turns out `dd-trace-js` was just a good load test to expose the issue, rather than being a contributing factor.
+
+Ultimately I made two major discoveries:
+
+## Preventing `_read` from being forwarded from the `MockSocket` to its superclass `net.Socket` resolves the issue.
+
+In https://github.com/mswjs/interceptors/pull/706 `MockSocket` was changed to expose the underlying `_handle` of a real socket. That PR solved some memory/resource leaks, by coercing the Node runtime not to make certain calls that subscribed event listeners based on some branching logic that depends on whether `_handle` is defined. Reverting https://github.com/mswjs/interceptors/pull/706 fixed my issue, but brought back the resource leak.
+
+_(I'll be honest, I'm in over my head at this point, I don't really know socket programming or even Node's public socket API all that well. I'm just trying to make fix my CI jobs after a dependency upgrade. I could stop here and declare victory but I really didn't feel comfortable not understanding what's happening.)_
+
+## The investigation
+
+... todo write this
+
+## Happy eyeballs
+
+... todo write this
 
 ## usage of AI/LLM disclaimer
 
