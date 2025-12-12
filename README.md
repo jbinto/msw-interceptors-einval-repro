@@ -6,6 +6,22 @@ This is a fork of `@mswjs/interceptors` and is an attempt to explain/solve https
 
 ## How to use this repo to reproduce the bug
 
+This repo contains a script which reproduces the bug. It use the latest version of `nock`, and is instrumented by `dd-trace`. Those traces are sent to a local HTTPS listener which discards them.
+
+I've included a Docker setup which:
+
+- alters network conditions to reliably reproduce the race condition (using `tc`, it delays loopback traffic by ~250ms). It also checks that you have an IPv4/IPv6 dual stack configured and working, because without one you cannot reproduce the bug (and you will waste hours trying).
+
+Note this requires `privileged: true`, you can disable this.
+
+```bash
+# Run baseline tests (should fail with EINVAL)
+docker-compose run --build baseline
+
+# Run tests with the fix (should pass)
+docker-compose run --build fix
+```
+
 ```bash
 # Clone and build @mswjs/interceptors
 git clone https://github.com/jbinto/msw-interceptors-einval-repro.git
@@ -22,16 +38,6 @@ pnpm test:baseline          # ❌ Should FAIL with EINVAL
 
 # Test locally, with proposed _read fix
 pnpm test:fix               # ✅ Should PASS
-```
-
-I've also included a Docker setup which alters network conditions to reliably reproduce the race condition (using `tc`, it delays loopback traffic by ~250ms).
-
-```bash
-# Run baseline tests (should fail with EINVAL)
-docker-compose run --build baseline
-
-# Run tests with the fix (should pass)
-docker-compose run --build fix
 ```
 
 ## Background
