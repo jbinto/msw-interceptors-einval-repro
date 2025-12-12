@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const https = require('https')
+const http = require('http')
 const fs = require('fs')
 const { execSync } = require('child_process')
 const nock = require('nock')
@@ -41,34 +41,12 @@ const argv = yargs(hideBin(process.argv))
   .example('pnpm test:fix', 'Run with fix enabled (should PASS)')
   .epilogue('For more information, see README.md').argv
 
-// Generate self-signed certs if needed
-function ensureCertificates() {
-  if (!fs.existsSync('server.key') || !fs.existsSync('server.cert')) {
-    try {
-      execSync(
-        'openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -subj "/CN=localhost"',
-        { stdio: 'ignore' }
-      )
-    } catch (e) {
-      console.error(
-        chalk.red('❌ Failed to generate certificates. Please install openssl.')
-      )
-      process.exit(1)
-    }
-  }
-}
-
 // Run a single test
 async function runSingleTest(concurrency, requests) {
   return new Promise((resolve) => {
     // Configure nock (activates @mswjs/interceptors)
     nock.enableNetConnect()
     nock('https://non-existent-domain.com').get('/').reply(200)
-
-    const httpsOptions = {
-      key: fs.readFileSync('server.key'),
-      cert: fs.readFileSync('server.cert'),
-    }
 
     // Track EINVAL errors and HANDLE MISMATCH warnings
     let hasEinval = false
@@ -85,7 +63,7 @@ async function runSingleTest(concurrency, requests) {
       return originalStderrWrite(...args)
     }
 
-    const server = https.createServer(httpsOptions, (req, res) => {
+    const server = http.createServer((req, res) => {
       res.writeHead(200)
       res.end('ok')
     })
@@ -107,7 +85,7 @@ async function runSingleTest(concurrency, requests) {
       const port = server.address().port
       let completed = 0
       let started = 0
-      const agent = new https.Agent({
+      const agent = new http.Agent({
         keepAlive: true,
         maxSockets: concurrency,
       })
@@ -116,12 +94,11 @@ async function runSingleTest(concurrency, requests) {
         if (started >= requests) return
         started++
 
-        const req = https.request(
+        const req = http.request(
           {
             port,
             method: 'POST',
             path: '/',
-            rejectUnauthorized: false,
             headers: { connection: 'keep-alive' },
             agent,
           },
@@ -257,8 +234,6 @@ async function executeSingleTest(concurrency, requests) {
 
 // Main execution
 async function main() {
-  ensureCertificates()
-
   try {
     await executeSingleTest(argv.concurrency, argv.requests)
   } finally {

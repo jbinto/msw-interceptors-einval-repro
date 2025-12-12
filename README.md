@@ -6,7 +6,7 @@ This is a fork of `@mswjs/interceptors` and is an attempt to explain/solve https
 
 ## How to use this repo to reproduce the bug
 
-This repo contains a script which reproduces the bug. It use the latest version of `nock`, and is instrumented by `dd-trace`. Those traces are sent to a local HTTPS listener which discards them.
+This repo contains a script which reproduces the bug. It uses the latest version of `nock`.
 
 I've included a Docker setup which:
 
