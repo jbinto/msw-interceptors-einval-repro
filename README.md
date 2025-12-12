@@ -2,6 +2,10 @@
 
 This is a fork of `@mswjs/interceptors` and is an attempt to explain/solve https://github.com/mswjs/interceptors/issues/753.
 
+tl;dr In a mixed IPv4/IPv6 environment, under "high" latency (>250ms), Node's Happy Eyeballs implementation swaps out an IPv6 for an IPv4 socket (or vice versa). msw's `MockHttpSocket` `passthrough()` implementation holds on to a `_handle` for the original socket and does not see this "switcheroo". When the old, already-destroyed socket is acted upon, we get errors like EINVAL (when reading) or ECANCELED (when writing to a `TLSSocket`).
+
+There are numerous ways to fix this, but I'm still trying to figure out how to balance this vs https://github.com/mswjs/interceptors/pull/706. Right now, I'm suppressing `_read`, which is enough to stop the EINVAL errors, but I think that's a bit of a hack and not really sufficient.
+
 ---
 
 ## How to use this repo to reproduce the bug
@@ -58,21 +62,25 @@ The trouble started when we upgraded from `nock@13` to `nock@14` (and also `nock
 
 I really want to continue using the (very nice!) CI Visibility product so I started to investigate. I finally figured out that the bad behavior was caused by simply making a large number of real, unmocked HTTP(S) requests while `nock` was loaded and activated in-process. Turns out `dd-trace-js` was just a good load test to expose the issue, rather than a contributing factor.
 
-Ultimately I made two major discoveries:
+Ultimately I made a few major discoveries:
 
-### Preventing `_read` from being forwarded from the `MockSocket` to its superclass `net.Socket` resolves the issue.
+### Preventing `_read` from being forwarded from the `MockSocket` to its superclass `net.Socket` resolves the EINVAL issue.
 
 In https://github.com/mswjs/interceptors/pull/706 `MockSocket` was changed to expose the underlying `_handle` of a real socket. That PR solved some memory/resource leaks, by coercing the Node runtime not to make certain calls that subscribed event listeners based on some branching logic that depends on whether `_handle` is defined. Reverting https://github.com/mswjs/interceptors/pull/706 fixed my issue, but brought back the resource leak.
 
 _(I'll be honest, I'm in over my head at this point, I don't really know socket programming or even Node's public socket API all that well. I'm just trying to make fix my CI jobs after a dependency upgrade. I could stop here and declare victory but I really didn't feel comfortable not understanding what's happening.)_
 
-### Happy eyeballs
+### Happy eyeballs is the root cause
 
-After a long investigation with a million dead ends (which I'll go into more detail about below), I realized I needed to trace why sockets were being closed in the first place. I added more and more logging to MockHttpSocket.ts and MockSocket.ts until I was able to print a stack trace on an error event emitter. I finally found a stack trace with `internalConnectMultiple` and
+I kept adding logging to `Mock[Http]Socket.ts` and eventually got a stack trace from an error event emitter with a frame for `internalConnectMultiple`. I learned that this is Node's [Happy Eyeballs](https://en.wikipedia.org/wiki/Happy_Eyeballs) implementation.
 
-## The investigation
+(\*aside: this is an interesting read, because how Node implements Happy Eyeballs is not the way it is commonly described: https://r1ch.net/blog/node-v20-aggregateeerror-etimedout-happy-eyeballs)
 
-... todo write this
+### There is still \_handle confusion
+
+I had an LLM add very nice, detailed logs to `MockHttpSocket.ts`. One thing that became apparent is, even with the `_read` fix, which prevents crashes, it's still clear that in this Happy Eyeballs case, the `_handle` is still stale. We patched over a single case that caused a crash, but I don't think that will be the only one.
+
+I suspect that this explains some other strange behavior I've seen where @mswjs/interceptors and the Playwight VSCode plugin interact poorly (another issue for another day).
 
 ## usage of AI/LLM disclaimer
 
