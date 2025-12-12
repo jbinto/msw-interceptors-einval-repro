@@ -2,9 +2,14 @@
 
 This is a fork of `@mswjs/interceptors` and is an attempt to explain/solve https://github.com/mswjs/interceptors/issues/753.
 
+- [Diff from origin (v0.39.8 tag)](https://github.com/jbinto/msw-interceptors-einval-repro/compare/329087a2141f68aab5a72bf685848daf484b7d64...repro)
+
 tl;dr In a mixed IPv4/IPv6 environment, under "high" latency (>250ms), Node's Happy Eyeballs implementation swaps out an IPv6 for an IPv4 socket (or vice versa). msw's `MockHttpSocket` `passthrough()` implementation holds on to a `_handle` for the original socket and does not see this "switcheroo". When the old, already-destroyed socket is acted upon, we get errors like EINVAL (when reading) or ECANCELED (when writing to a `TLSSocket`).
 
 There are numerous ways to fix this, but I'm still trying to figure out how to balance this vs https://github.com/mswjs/interceptors/pull/706. Right now, I'm suppressing `_read`, which is enough to stop the EINVAL errors, but I think that's a bit of a hack and not really sufficient.
+
+- [Example reproduction log](https://raw.githubusercontent.com/jbinto/msw-interceptors-einval-repro/refs/heads/repro/repro/example_log_without_fix.log)
+- [Example "fixed but hacky" log ](https://raw.githubusercontent.com/jbinto/msw-interceptors-einval-repro/refs/heads/repro/repro/example_log_with_fix.log)
 
 ---
 
