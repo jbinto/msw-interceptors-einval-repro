@@ -19,6 +19,21 @@ const C = {
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const log = (msg) => console.log(`[test.js] ${msg}`)
 
+function displayDualStackStatus({ ok, hasIPv4, hasIPv6, dnsIPv4, dnsIPv6 }) {
+  const mark = (val) => (val ? C.GREEN + '✓' + C.RESET : C.RED + '✗' + C.RESET)
+  log(
+    `${C.GRAY}dual stack:${C.RESET} ${
+      ok
+        ? C.GREEN + '✓ complete' + C.RESET
+        : C.YELLOW + '⚠ incomplete' + C.RESET
+    }`
+  )
+  log(`  ${mark(hasIPv4)} IPv4 interface`)
+  log(`  ${mark(hasIPv6)} IPv6 interface`)
+  log(`  ${mark(dnsIPv4)} localhost → IPv4 DNS`)
+  log(`  ${mark(dnsIPv6)} localhost → IPv6 DNS`)
+}
+
 // Check dual stack support
 async function checkDualStack() {
   const ifaces = networkInterfaces()
@@ -37,19 +52,20 @@ async function checkDualStack() {
   } catch {}
 
   const ok = hasIPv4 && hasIPv6 && dnsIPv4 && dnsIPv6
+  const result = { ok, hasIPv4, hasIPv6, dnsIPv4, dnsIPv6 }
 
-  if (ok) {
-    log(`${C.GREEN}✓${C.RESET} IPv4/IPv6 dual stack detected`)
-  } else {
-    log(`${C.YELLOW}⚠${C.RESET} dual stack incomplete`)
-    if (!hasIPv4) log(`  ${C.YELLOW}⚠${C.RESET} IPv4 not detected`)
-    if (!hasIPv6) log(`  ${C.YELLOW}⚠${C.RESET} IPv6 not detected`)
-    if (!dnsIPv4) log(`  ${C.YELLOW}⚠${C.RESET} localhost no IPv4 DNS`)
-    if (!dnsIPv6) log(`  ${C.YELLOW}⚠${C.RESET} localhost no IPv6 DNS`)
-    log(`  ${C.GRAY}→ repro may not trigger race condition${C.RESET}`)
-    log(`  ${C.GRAY}→ waiting 3s... CTRL+C to abort${C.RESET}`)
-    await wait(3000)
+  displayDualStackStatus(result)
+
+  if (!ok) {
+    log(
+      `  ${C.GRAY}→ Without dual stack, Happy Eyeballs won't activate${C.RESET}`
+    )
+    log(`  ${C.GRAY}→ Race condition likely will not occur${C.RESET}`)
+    log(`  ${C.GRAY}→ waiting 7s... CTRL+C to abort${C.RESET}`)
+    await wait(7000)
   }
+
+  return result
 }
 
 // Read config from env vars
@@ -185,21 +201,22 @@ async function runSingleTest(concurrency, requests) {
 function reportOutcome({ hasEinval, hasHandleMismatch }) {
   log('')
   if (hasHandleMismatch && hasEinval) {
-    log(`${C.RED}⚠️  Both EINVAL and HANDLE MISMATCH detected${C.RESET}`)
-    log(`   ${C.GRAY}→ You are in a happy eyeballs environment${C.RESET}`)
+    log(`   ${C.RED}⚠️  Both EINVAL and HANDLE MISMATCH detected${C.RESET}`)
     log(
-      `   ${C.GRAY}→ Handle mismatch is occurring (baseline behavior)${C.RESET}`
+      `   ${C.GRAY}→ Fatal error with EINVAL successfully reproduced${C.RESET}`
     )
-    log(`   ${C.GRAY}→ Fatal error with EINVAL expected${C.RESET}`)
   } else if (hasHandleMismatch) {
     log(`${C.YELLOW}⚠️  HANDLE MISMATCH detected, but no EINVAL${C.RESET}`)
-    log(`   ${C.GRAY}→ Happy eyeballs environment confirmed${C.RESET}`)
     log(`   ${C.GRAY}→ Handle mismatch still occurs${C.RESET}`)
     log(`   ${C.GRAY}→ Crashes avoided by the _read fix${C.RESET}`)
   } else {
     log(`${C.GREEN}✅ No HANDLE MISMATCH detected${C.RESET}`)
-    log(`   ${C.GRAY}→ Either not in happy eyeballs environment${C.RESET}`)
-    log(`   ${C.GRAY}→ Or _handle aliasing completely fixed${C.RESET}`)
+    log(
+      `   ${C.GRAY}→ Either you are not in a dual IPv4/IPv6 environment${C.RESET}`
+    )
+    log(
+      `   ${C.GRAY}→ Or the _handle aliasing bug has been completely fixed 🤞${C.RESET}`
+    )
   }
 
   log('')
@@ -234,7 +251,7 @@ function printIntro() {
   log(
     `${C.GRAY}patched:${C.RESET} ${
       config.fix
-        ? `${C.GREEN}yes${C.RESET} (msw_use_fix=true)`
+        ? `${C.GREEN}yes (MSW_USE_FIX=true)${C.RESET}`
         : `${C.RED}no${C.RESET} (baseline)`
     }`
   )
@@ -264,11 +281,30 @@ async function promptToLaunch() {
 
 // Main execution
 async function main() {
-  await checkDualStack()
+  const dualStack = await checkDualStack()
   printIntro()
   await promptToLaunch()
   console.log(`${C.GREEN}🚀 LAUNCHING...${C.RESET}\n`)
   await executeSingleTest(config.concurrency, config.requests)
+
+  // Repeat dual stack status for posterity
+  log('')
+  displayDualStackStatus(dualStack)
+  if (!dualStack.ok) {
+    log(
+      `  ${C.GRAY}→ Without dual stack, Happy Eyeballs won't activate${C.RESET}`
+    )
+    log(`  ${C.GRAY}→ Race condition likely did not occur${C.RESET}`)
+  }
+
+  // Suggest trying with fix if not already enabled
+  if (!config.fix) {
+    log('')
+    log(
+      `${C.CYAN}💡 Try with fix:${C.RESET} ${C.YELLOW}MSW_USE_FIX=true docker compose run repro${C.RESET}`
+    )
+  }
+
   process.exit(0)
 }
 

@@ -24,7 +24,11 @@ I've included a Docker setup which:
 - checks that you have an IPv4/IPv6 dual stack configured and working _(because without one you cannot reproduce the bug, and you will waste hours trying)_
 - alters network conditions to reliably reproduce the race condition (using `tc`, it delays loopback traffic by ~250ms)
 
-Note the network delay requires `privileged: true`, you can disable this in the compose file.
+If you are using Docker Desktop, you can change the IP stack in `Settings -> Resources -> Network -> Default networking mode`. You should be set to `Dual IPv4/IPv6` if you expect to reproduce. If you are set to `IPv4 only`, this bug would never affect you.
+
+Note that as you change between network modes, you must `docker compose down`.
+
+Note the network delay requires `privileged: true`. You can disable this in `docker-compose.yml` if you do not like this, but it will make it much harder to reproduce and you should consider increasing `CONCURRENCY` and `REQUESTS` to something very high to compensate.
 
 ```bash
 # Run baseline test (should fail with EINVAL)

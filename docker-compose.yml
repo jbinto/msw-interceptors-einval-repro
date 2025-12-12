@@ -8,8 +8,9 @@ services:
     # Required for tc/netem to work
     privileged: true
     environment:
-      - REPRO_IGNORE_DUAL_STACK=false
-      - MSW_USE_FIX
-      - CONCURRENCY=300
-      - REQUESTS=2000
+      - MSW_USE_FIX=${MSW_USE_FIX:-false}
+      # If the tc/netem delay is in place, you don't really need this to be very high
+      # Conversely, without delay, a sweet spot is about CONCURRENCY=300, REQUESTS=20000
+      - CONCURRENCY=${CONCURRENCY:-20}
+      - REQUESTS=${REQUESTS:-100}
     command: pnpm start

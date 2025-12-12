@@ -6,6 +6,3 @@ lib
 package-lock.json
 .idea
 /test-results
-
-repro/server.cert
-repro/server.key
