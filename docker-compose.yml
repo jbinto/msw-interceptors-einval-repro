@@ -1,26 +1,15 @@
 services:
-  baseline:
+  repro:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: repro/Dockerfile
     image: einval-repro
-    container_name: einval-repro-baseline
+    container_name: einval-repro
     # Required for tc/netem to work
     privileged: true
-    # Change to true to disable ipv4/ipv6 pre-checks
     environment:
       - REPRO_IGNORE_DUAL_STACK=false
-    command: pnpm test:baseline
-
-  fix:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: einval-repro
-    container_name: einval-repro-fix
-    # Required for tc/netem to work
-    privileged: true
-    # Change to true to disable ipv4/ipv6 pre-checks
-    environment:
-      - REPRO_IGNORE_DUAL_STACK=false
-    command: pnpm test:fix
+      - MSW_USE_FIX
+      - CONCURRENCY=300
+      - REQUESTS=2000
+    command: pnpm start

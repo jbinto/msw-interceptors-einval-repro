@@ -20,6 +20,6 @@ COPY repro/package.json repro/pnpm-lock.yaml ./repro/
 RUN pnpm install --no-frozen-lockfile
 
 # Entrypoint checks for ipv4/ipv6 dual stack and sets up network delay
-RUN chmod +x /workspace/docker-entrypoint.sh
-ENTRYPOINT ["/workspace/docker-entrypoint.sh"]
-CMD ["sh", "-c", "echo 'Please use docker-compose up baseline or docker-compose up fix'"]
+RUN chmod +x /workspace/repro/docker-entrypoint.sh
+ENTRYPOINT ["/workspace/repro/docker-entrypoint.sh"]
+CMD ["sh", "-c", "echo 'Please use docker-compose up repro'"]
