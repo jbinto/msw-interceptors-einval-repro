@@ -1,0 +1,12 @@
+{
+  "name": "repro-latest",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node run.mjs"
+  },
+  "dependencies": {
+    "nock": "14.0.15"
+  }
+}

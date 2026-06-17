@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import http from 'http'
+import net from 'net'
 import nock from 'nock'
 import readline from 'readline'
 import { networkInterfaces } from 'os'
@@ -272,6 +273,10 @@ function printIntro() {
 }
 
 async function promptToLaunch() {
+  if (process.env.AUTO_LAUNCH === 'true' || process.env.CI === 'true') {
+    log(`${C.GRAY}auto-launch (AUTO_LAUNCH/CI set) — skipping prompt${C.RESET}`)
+    return
+  }
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -285,7 +290,27 @@ async function main() {
   printIntro()
   await promptToLaunch()
   console.log(`${C.GREEN}🚀 LAUNCHING...${C.RESET}\n`)
-  await executeSingleTest(config.concurrency, config.requests)
+
+  const runs = parseInt(process.env.RUNS || '1', 10)
+  let einvalRuns = 0
+  for (let i = 1; i <= runs; i++) {
+    if (runs > 1) {
+      log(`${C.CYAN}──────── run ${i}/${runs} ────────${C.RESET}`)
+    }
+    const passed = await executeSingleTest(config.concurrency, config.requests)
+    if (!passed) {
+      einvalRuns++
+    }
+  }
+
+  log('')
+  log(`${C.CYAN}═══ BURN-IN SUMMARY ═══${C.RESET}`)
+  log(`  node:             ${process.version}`)
+  log(`  fix(patch):       ${config.fix}`)
+  log(`  autoSelectFamily: ${net.getDefaultAutoSelectFamily()}`)
+  log(`  runs:             ${runs}`)
+  log(`  einval runs:      ${einvalRuns}`)
+  log(`  clean runs:       ${runs - einvalRuns}`)
 
   // Repeat dual stack status for posterity
   log('')
@@ -297,15 +322,7 @@ async function main() {
     log(`  ${C.GRAY}→ Race condition likely did not occur${C.RESET}`)
   }
 
-  // Suggest trying with fix if not already enabled
-  if (!config.fix) {
-    log('')
-    log(
-      `${C.CYAN}💡 Try with fix:${C.RESET} ${C.YELLOW}MSW_USE_FIX=true docker compose run repro${C.RESET}`
-    )
-  }
-
-  process.exit(0)
+  process.exit(einvalRuns > 0 ? 1 : 0)
 }
 
 main().catch((err) => {
