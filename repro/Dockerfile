@@ -1,4 +1,4 @@
-FROM node:20.19.5-slim
+FROM node:24.16.0-slim
 
 # Installing iproute2 for `tc` to slow down network
 RUN apt-get update && apt-get install -y iproute2 && rm -rf /var/lib/apt/lists/*
