@@ -37,6 +37,42 @@ services:
     networks:
       - dualstack
 
+  repro-latest-tls:
+    build:
+      context: .
+      dockerfile: latest/Dockerfile.tls
+    image: einval-repro-latest-tls
+    privileged: true
+    environment:
+      - CONCURRENCY=${CONCURRENCY:-300}
+      - REQUESTS=${REQUESTS:-8000}
+      - RUNS=${RUNS:-1}
+      - NODE_OPTIONS=${NODE_OPTIONS:-}
+    command: node run-tls.mjs
+    networks:
+      - dualstack
+
+  # The exact stack we run at work: nock@14.0.10 -> @mswjs/interceptors@0.39.8.
+  repro-work-tls:
+    build:
+      context: .
+      dockerfile: latest/Dockerfile.tls-work
+    image: einval-repro-work-tls
+    privileged: true
+    environment:
+      - CONCURRENCY=${CONCURRENCY:-300}
+      - REQUESTS=${REQUESTS:-8000}
+      - RUNS=${RUNS:-1}
+      - NODE_OPTIONS=${NODE_OPTIONS:-}
+      - BODY_KB=${BODY_KB:-256}
+      - TARGET_HOST=${TARGET_HOST:-localhost}
+      - MAX_SOCKETS=${MAX_SOCKETS:-}
+      - POISON_V6=${POISON_V6:-}
+      - MSW_FIX=${MSW_FIX:-}
+    command: node run-tls.mjs
+    networks:
+      - dualstack
+
 networks:
   dualstack:
     enable_ipv6: true

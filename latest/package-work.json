@@ -1,0 +1,12 @@
+{
+  "name": "repro-work",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node run-tls.mjs" },
+  "dependencies": {
+    "nock": "14.0.10"
+  },
+  "overrides": {
+    "@mswjs/interceptors": "0.39.8"
+  }
+}
