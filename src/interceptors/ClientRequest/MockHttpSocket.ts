@@ -179,6 +179,21 @@ export class MockHttpSocket extends MockSocket {
   }
 
   /**
+   * For passthrough requests, response data arrives via the original socket's
+   * "data" event (forwarded with `push()` below), never by reading this
+   * socket's own handle. Suppress the inherited `net.Socket._read`: it would
+   * call `readStart()` on a handle this socket does not own, and — when this
+   * socket has no handle — register a "connect" listener on every push (the
+   * leak that #706 worked around). Both are avoided by not reading here.
+   */
+  public _read(size: number): void {
+    if (this.socketState === 'passthrough') {
+      return
+    }
+    super._read(size)
+  }
+
+  /**
    * Establish this Socket connection as-is and pipe
    * its data/events through this Socket.
    */
@@ -192,19 +207,14 @@ export class MockHttpSocket extends MockSocket {
     const socket = this.createConnection()
     this.originalSocket = socket
 
-    /**
-     * @note Inherit the original socket's connection handle.
-     * Without this, each push to the mock socket results in a
-     * new "connection" listener being added (i.e. buffering pushes).
-     * @see https://github.com/nodejs/node/blob/b18153598b25485ce4f54d0c5cb830a9457691ee/lib/net.js#L734
-     */
-    if ('_handle' in socket) {
-      Object.defineProperty(this, '_handle', {
-        value: socket._handle,
-        enumerable: true,
-        writable: true,
-      })
-    }
+    // NOTE: This socket intentionally does NOT adopt the original socket's
+    // `_handle`. Sharing one handle across two sockets let this socket's
+    // lifecycle act on the real connection and corrupt it when the underlying
+    // socket was swapped/closed (e.g. Happy Eyeballs), surfacing as
+    // `read EINVAL` / `write ECANCELED "Canceled because of SSL destruction"`
+    // (#753). The "connection listener per push" issue the old alias addressed
+    // is handled instead by the `_read` override above, which keeps the
+    // inherited `_read` (the source of those listeners) from running.
 
     // The client-facing socket can be destroyed in two ways:
     // 1. The developer destroys the socket.
