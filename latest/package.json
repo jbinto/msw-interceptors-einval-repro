@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "node run.mjs"
+    "start": "node run-tls.mjs"
   },
   "dependencies": {
     "nock": "14.0.15"

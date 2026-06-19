@@ -22,7 +22,7 @@ COPY latest/instrument.mjs ./
 COPY latest/mechanism.mjs ./
 COPY latest/mem.mjs ./
 COPY latest/regression706.mjs ./
-COPY repro/docker-entrypoint.sh /docker-entrypoint.sh
+COPY latest/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 ENV CI=true

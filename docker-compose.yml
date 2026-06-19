@@ -1,42 +1,4 @@
 services:
-  repro:
-    build:
-      context: .
-      dockerfile: repro/Dockerfile
-    image: einval-repro
-    container_name: einval-repro
-    # Required for tc/netem to work
-    privileged: true
-    environment:
-      - MSW_USE_FIX=${MSW_USE_FIX:-false}
-      # If the tc/netem delay is in place, you don't really need this to be very high
-      # Conversely, without delay, a sweet spot is about CONCURRENCY=300, REQUESTS=20000
-      - CONCURRENCY=${CONCURRENCY:-20}
-      - REQUESTS=${REQUESTS:-100}
-      # Burn-in knobs: skip the interactive prompt, loop N times, and pass node flags
-      # (e.g. NODE_OPTIONS=--no-network-family-autoselection to disable Happy Eyeballs).
-      - AUTO_LAUNCH=${AUTO_LAUNCH:-true}
-      - RUNS=${RUNS:-1}
-      - NODE_OPTIONS=${NODE_OPTIONS:-}
-    command: pnpm start
-    networks:
-      - dualstack
-
-  repro-latest:
-    build:
-      context: .
-      dockerfile: latest/Dockerfile
-    image: einval-repro-latest
-    privileged: true
-    environment:
-      - CONCURRENCY=${CONCURRENCY:-300}
-      - REQUESTS=${REQUESTS:-8000}
-      - RUNS=${RUNS:-1}
-      - NODE_OPTIONS=${NODE_OPTIONS:-}
-    command: npm start
-    networks:
-      - dualstack
-
   repro-latest-tls:
     build:
       context: .
