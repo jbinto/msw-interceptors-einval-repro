@@ -8,10 +8,10 @@ A fork of `@mswjs/interceptors` used as a **reproduction testbed** for [mswjs/in
 
 ## What's actually going on
 
-`MockHttpSocket.passthrough()` aliases the real socket's `_handle` onto the mock ([#706](https://github.com/mswjs/interceptors/pull/706)). But `MockSocket extends net.Socket` overrides only the *public* `write`/`read`, so it still inherits `net.Socket._read`, which calls `readStart()` on that borrowed handle. Two owners, one handle — and when Node's Happy Eyeballs (`autoSelectFamily`, default-on since Node 20) swaps the underlying socket, the mock acts on a handle that's already gone:
+`MockHttpSocket.passthrough()` aliases the real socket's `_handle` onto the mock ([#706](https://github.com/mswjs/interceptors/pull/706)). But `MockSocket extends net.Socket` overrides only the public `write`/`read` methods — it leaves `_read` alone, so it inherits `net.Socket`'s own `_read` — and the moment the stream tries to pull data, that inherited `_read` calls `readStart()` on the `_handle` it's holding: the borrowed one. Two owners, one handle — and when Node's Happy Eyeballs (`autoSelectFamily`, default-on since Node 20) swaps the underlying socket, the mock acts on a handle that's already gone:
 
 - **read → `read EINVAL`**
-- **write → `write ECANCELED "Canceled because of SSL destruction"`** — TLS-only; tearing the mock down `close()`s the shared handle while a write is in flight (mid-handshake), cancelling it.
+- **write → `write ECANCELED "Canceled because of SSL destruction"`** — TLS-only; tearing the mock down (as nock's cleanup does) `close()`s the shared handle while a write is in flight (mid-handshake), cancelling it.
 
 One root, two faces. **The fix:** override `_read` to a no-op in passthrough **and** drop the #706 alias (below).
 
@@ -21,15 +21,17 @@ Two things that are *not* this bug:
 
 ## The hard part: two purpose-built simulators
 
-In the wild this is a ~1-in-thousands flake. The real engineering here is **two test environments that make each face deterministic against the real package** — so "→ 0" is a measurement, not a hope. Both run real `https.request` → `tls.connect` through the real interceptor; nothing about OpenSSL is faked.
+In the wild this fires maybe once in a few thousand requests, which is what makes it so hard to chase. So the work that actually mattered here wasn't the fix — it was building **two environments that turn each failure face into something you can trigger at will, against the real published package.** That's what makes the "→ 0" figures below worth trusting: they reproduce on every run. Both simulators drive a real `https.request` → `tls.connect` through the real interceptor; nothing about the socket or OpenSSL is stubbed out.
 
 ### Simulator 1 — the Happy-Eyeballs swap → `read EINVAL`
 
-The race only misfires under a precise alignment, so the rig recreates all of it at once. Remove any one ingredient and it goes silent:
+The race only goes wrong when a few things line up at once, so the rig assembles all of them on purpose. Pull any single piece and it vanishes:
 
-- **Genuinely dual-stack** (IPv4 + IPv6) — without both, Happy Eyeballs has nothing to race and the bug *cannot* occur. This is the #1 reason people "can't reproduce." (`docker-compose.yml` → the `enable_ipv6` network.)
-- **~250 ms loopback delay** via `tc netem` — Happy Eyeballs only opens a *second* connection attempt after a 250 ms timer; sub-millisecond loopback never reaches it. The delay is what makes Node actually open the second socket and swap to it — the instant the borrowed handle goes stale. (See [`repro/docker-entrypoint.sh`](repro/docker-entrypoint.sh).)
-- **Thousands of concurrent passthrough requests** — volume to land on the wrong side of the race every run.
+- **A genuinely dual-stack host** (IPv4 *and* IPv6). If only one family is reachable, Happy Eyeballs has nothing to race and the bug simply can't occur — this is the number-one reason people try to reproduce #753 and come up empty. (Provided by the `enable_ipv6` network in `docker-compose.yml`.)
+- **A ~250 ms loopback delay**, added with `tc netem`. Happy Eyeballs only opens its *second* connection attempt after a 250 ms timer, and on a normal sub-millisecond loopback that timer never fires — so the second socket never opens and nothing ever swaps. The delay is what forces the race: it drags the first attempt out past 250 ms, Node opens the second socket and swaps to it, and the borrowed handle goes stale at exactly that moment. (See [`repro/docker-entrypoint.sh`](repro/docker-entrypoint.sh).)
+- **Thousands of concurrent passthrough requests** — at this volume, against the 250 ms delay, essentially every request ends up on the losing side, so a baseline run logs ~8000 `EINVAL`s rather than the handful you'd see in the wild.
+
+(The read face isn't TLS-specific — it first turned up on a plain-HTTP rig — but this testbed runs both faces through the same TLS harness, so Simulator 1 reproduces `EINVAL` over `tls.connect` too.)
 
 ```bash
 # baseline — the exact stack we run at work (nock@14.0.10 -> @mswjs/interceptors@0.39.8): ~8000 EINVAL/run
@@ -42,11 +44,13 @@ docker compose run --rm -e MSW_FIX=1 -e FIX_KIND=readnoop-noalias \
 
 ### Simulator 2 — the stalled TLS socket → `write ECANCELED`
 
-`ECANCELED "Canceled because of SSL destruction"` is TLS-only and needs a write *in flight* when the handle is closed — so a loopback HTTP repro can never surface it (no SSL, nothing to destroy). That's the part that hid for months. This rig forces the window deterministically:
+This is the face that stayed hidden for months, and it's not hard to see why. `ECANCELED "Canceled because of SSL destruction"` can only happen over TLS, and only when a write is still *in flight* at the moment the handle closes. A plain-HTTP loopback reproduction will never show it — no TLS layer means nothing to "destroy." To get it on demand, you have to manufacture that narrow window deliberately:
 
-- A TLS server that accepts but **never finishes the handshake** (`SERVER_MODE=tlsstall`, see [`latest/run-tls.mjs`](latest/run-tls.mjs)), so a real write **parks in OpenSSL** with nowhere to drain.
-- A teardown induced **mid-handshake** (`DESTROY_ON_TIMEOUT=1`) — the same teardown nock's cleanup does in CI — closing the shared handle under that write.
-- The flag is left **on** (`--no-network-family-autoselection`) to remove the `EINVAL` read-face so it can't pre-empt the write — i.e. it reproduces the exact real-CI "flag present, still crashing" condition.
+- **A TLS server that accepts the connection but never finishes the handshake** (`SERVER_MODE=tlsstall`, in [`latest/run-tls.mjs`](latest/run-tls.mjs)). The client's write then parks inside OpenSSL with nowhere to drain — exactly the in-flight state we need.
+- **A teardown triggered mid-handshake** (`DESTROY_ON_TIMEOUT=1`), closing the shared handle out from under that pending write. This stands in for the teardown nock performs when it tears a request down during cleanup.
+- **The flag left on** (`--no-network-family-autoselection`), which removes the `EINVAL` read-face so it can't pre-empt the write.
+
+The stalled handshake is an engineered stand-in, not the literal sequence CI runs — but it recreates the condition that left people stuck: the flag is applied and the suite still crashes, this time on the write.
 
 ```bash
 # baseline — ~500-900 "Canceled because of SSL destruction" / run, WITH the flag on
@@ -64,7 +68,14 @@ docker compose run --rm -e MSW_FIX=1 -e FIX_KIND=readnoop-noalias \
 
 ### `mechanism.mjs` — the write face in isolation (no nock, no Happy Eyeballs)
 
-A deterministic micro-repro of the exact primitive: a real `TLSSocket` mid-handshake with a pending write, torn down four ways — **A** close the borrowed handle, **B** MSW's exact alias → `mock.destroy()`, **C** `originalSocket.destroy(EINVAL)`, **D** the fix (no alias). **B** (literally MSW's pattern) emits `write ECANCELED "Canceled because of SSL destruction"` 100%; **D** does not.
+The simulators show the bug happening; this shows why. It strips the situation down to the bare primitive — a real `TLSSocket` caught mid-handshake with a pending write — and tears it down four different ways:
+
+- **A** — close the borrowed handle directly
+- **B** — the interceptor's alias-then-destroy, reproduced by hand: a second socket borrows the handle, then its own `mock.destroy()` closes it
+- **C** — `originalSocket.destroy(EINVAL)`
+- **D** — the fix: no borrowed handle at all
+
+**B is the pattern `MockHttpSocket` uses today, and it emits `write ECANCELED "Canceled because of SSL destruction"` every single time. D — the fix — never does.**
 
 ```bash
 docker compose run --rm -e NO_NETEM=1 repro-work-tls node mechanism.mjs
@@ -85,7 +96,7 @@ docker compose run --rm -e NO_NETEM=1 -e MSW_FIX=1 -e FIX_KIND=readnoop-noalias 
   repro-work-tls node regression706.mjs
 ```
 
-Other `FIX_KIND`s exist to *prove the analysis*, not to ship: `readnoop` (no-op only, keep alias), `getter` (live `_handle` getter — fixes EINVAL only, inferior), `noalias-only` (drop alias *without* the `_read` override → reintroduces #706's leak, a negative control), `revert757` (see below).
+Other `FIX_KIND`s exist to *prove the analysis*, not to ship: `readnoop` (no-op only, keep alias), `getter` (live `_handle` getter — fixes EINVAL only, so the write face still fires), `noalias-only` (drop alias *without* the `_read` override → reintroduces #706's leak, a negative control), `revert757` (see below).
 
 ## The memory leak (#757) — isolated to one commit
 
