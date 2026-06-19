@@ -160,9 +160,10 @@ const startServer = (key, cert) => {
   server.keepAliveTimeout = 0
   server.headersTimeout = 0
   return new Promise((resolve) =>
-    // Listen on IPv4 only: the poisoned "mockhost" resolves v6 to a blackhole,
-    // so the v6 Happy-Eyeballs attempt must time out before v4 succeeds here.
-    server.listen(0, '127.0.0.1', () =>
+    // Default 127.0.0.1 (POISON_V6 needs a v4-only server). Set SERVER_BIND=::
+    // for a dual-stack server so a `localhost` connect succeeds on either family
+    // — needed to A/B the flag's effect on EINVAL with successful requests.
+    server.listen(0, process.env.SERVER_BIND || '127.0.0.1', () =>
       resolve({ server, conns, port: server.address().port })
     )
   )

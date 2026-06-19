@@ -51,6 +51,25 @@ for (const file of walk(ROOT)) {
       edits++
       return LIVE_GETTER_BODY
     })
+  } else if (KIND === 'revert757') {
+    // PROOF probe: undo upstream #757 on 0.41.x — swap freeParser(...) back to
+    // the old parser.free() (which pools the parser WITHOUT nulling its kOn*
+    // callbacks/socket refs). If the passthrough leak returns, #757 is the fix.
+    const n1 = src.split('freeParser(this.requestParser, this)').length - 1
+    const n2 = src.split('freeParser(this.responseParser, this)').length - 1
+    src = src
+      .split('freeParser(this.requestParser, this)').join('this.requestParser.free()')
+      .split('freeParser(this.responseParser, this)').join('this.responseParser.free()')
+    edits += n1 + n2
+  } else if (KIND === 'noalias-only') {
+    // NEGATIVE CONTROL: drop the #706 alias but DON'T add the _read override.
+    // This should reintroduce the #706 leak (inherited _read with no handle
+    // registers a 'connect' listener per push) — proving the _read override is
+    // the load-bearing part, not merely removing the alias.
+    src = src.replace(ALIAS, () => {
+      edits++
+      return '/* #706 alias removed; NO _read override (negative control) */;'
+    })
   } else if (KIND === 'readnoop' || KIND === 'readnoop-noalias') {
     if (ANCHOR.test(src)) {
       ANCHOR.lastIndex = 0
