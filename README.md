@@ -2,7 +2,7 @@
 
 A fork of `@mswjs/interceptors` used as a **reproduction testbed** for [mswjs/interceptors#753](https://github.com/mswjs/interceptors/issues/753).
 
-> **Status — June 2026.** Root cause and fix are settled. This branch (`tls-write-ecanceled-repro`) reproduces **both** failure faces deterministically — against the **real published packages** — and drives each to **0** with the fix. The original `repro` branch was an earlier, HTTP-only / EINVAL-only attempt; it could never surface the `ECANCELED` write face (that's TLS-only), and is superseded by this branch.
+> **Status — June 2026.** Root cause and fix are settled. This testbed reproduces **both** failure faces deterministically — against the **real published packages** — and drives each to **0** with the fix. It started life as an HTTP-only reproduction that only ever surfaced `read EINVAL`; the `write ECANCELED` face is TLS-only and was added later, together with the fix and its verification.
 
 ## What's actually going on
 
