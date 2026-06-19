@@ -1,5 +1,7 @@
 # @mswjs/interceptors #753 — reproduction testbed (EINVAL / ECANCELED, + the #757 leak)
 
+> **Authored by [Claude Code](https://claude.com/claude-code).** The reproduction harnesses, the two simulators, the fix, and this README were written by Claude Code (Anthropic's agentic coding tool), human-directed and human-reviewed. Every result here is reproduction-backed against the real published packages.
+
 A fork of `@mswjs/interceptors` used as a **reproduction testbed** for [mswjs/interceptors#753](https://github.com/mswjs/interceptors/issues/753).
 
 > **Status — June 2026.** Root cause and fix are settled. This testbed reproduces **both** failure faces deterministically — against the **real published packages** — and drives each to **0** with the fix. It started life as an HTTP-only reproduction that only ever surfaced `read EINVAL`; the `write ECANCELED` face is TLS-only and was added later, together with the fix and its verification.
