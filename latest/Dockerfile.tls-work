@@ -1,0 +1,30 @@
+FROM node:24.16.0-slim
+
+# iproute2 for `tc` (loopback delay), openssl to mint a self-signed cert.
+RUN apt-get update && apt-get install -y iproute2 openssl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /work
+# The exact stack we run at work: nock@14.0.10 -> @mswjs/interceptors@0.39.8 (override pins it).
+# 0.39.8's passthrough uses `once('error', (e) => socket.destroy(e))`, which
+# destroys the real TLS socket immediately on a stale-handle read error — the
+# cascade that should surface `write ECANCELED "SSL destruction"`.
+COPY latest/package-work.json ./package.json
+RUN npm install --no-audit --no-fund
+
+RUN mkdir -p /work/certs && \
+    openssl req -x509 -newkey rsa:2048 -nodes \
+      -keyout /work/certs/key.pem -out /work/certs/cert.pem \
+      -days 3650 -subj "/CN=localhost"
+
+COPY latest/run-tls.mjs ./
+COPY latest/apply-fix.mjs ./
+COPY latest/instrument.mjs ./
+COPY latest/mechanism.mjs ./
+COPY latest/mem.mjs ./
+COPY latest/regression706.mjs ./
+COPY repro/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENV CI=true
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["node", "run-tls.mjs"]
