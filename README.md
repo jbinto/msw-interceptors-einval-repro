@@ -90,15 +90,18 @@ Other `FIX_KIND`s exist to *prove the analysis*, not to ship: `readnoop` (no-op 
 A separate bug: the response parser is returned to Node's pool with `parser.free()`, which doesn't null its `kOn*` callbacks; those retain the socket and every buffered response → the heap climbs to OOM. Fixed upstream by [#757](https://github.com/mswjs/interceptors/pull/757) in 0.41.0. [`latest/mem.mjs`](latest/mem.mjs) profiles it (forced GC between samples), and the fix is isolated by toggling that one commit:
 
 ```bash
-# 0.39.8 (pre-#757): ~1.25 GB of arrayBuffers retained after GC
-docker compose run --rm -e NO_NETEM=1 repro-work-tls node --expose-gc mem.mjs
+# 0.39.8 (pre-#757): arrayBuffers climb to ~1.25 GB and stay there after GC
+docker compose run --rm -e NO_NETEM=1 -e REQUESTS=20000 repro-work-tls node --expose-gc mem.mjs
+
+# stock 0.41.9: flat (~0.2 MB retained) — the leak is gone
+docker compose run --rm -e NO_NETEM=1 -e REQUESTS=20000 repro-latest-tls node --expose-gc mem.mjs
 
 # 0.41.9 with #757 reverted: the leak comes straight back
-docker compose run --rm -e NO_NETEM=1 -e MSW_FIX=1 -e FIX_KIND=revert757 \
+docker compose run --rm -e NO_NETEM=1 -e REQUESTS=20000 -e MSW_FIX=1 -e FIX_KIND=revert757 \
   repro-latest-tls node --expose-gc mem.mjs
 ```
 
-The #753 handle fix is memory-neutral; the leak flips only with #757.
+> Volume matters here: the leak is proportional to total passthrough bytes, so pin `REQUESTS=20000` to see the full ~1.25 GB (the compose default of 8000 still shows it clearly at ~0.5 GB). The #753 handle fix is memory-neutral; the leak flips only with #757.
 
 ## Layout
 
